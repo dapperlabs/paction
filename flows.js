@@ -6,6 +6,7 @@ const hardware = require('./signby/hardware');
 const fromSignature = require('./jsonrpc/payload/from');
 const Payload = require('./jsonrpc/payload');
 const { showAllWrites, showConstructor } = require('./cli/abi');
+const { sequential } = require('./utils/async');
 
 exports.entry = async ask => {
   const action = await ask(
@@ -54,24 +55,10 @@ const askOneParam = ask => {
   };
 };
 
-const async1By1 = async (f, items) => {
-  const go = async (f, all, items) => {
-    if (items.length === 0) {
-      return all;
-    }
-
-    const one = items.shift();
-    const value = await f(one);
-    all.push(value);
-    return go(f, all, items);
-  };
-  return go(f, [], items);
-};
-
 const askConstructors = async (ask, constructor) => {
   const inputs = constructor.inputs;
   // [string]
-  const all = await async1By1(askOneParam(ask), inputs);
+  const all = await sequential(askOneParam(ask), inputs);
   return all;
 };
 
