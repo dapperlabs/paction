@@ -1,0 +1,11 @@
+{
+  "name": "txgun",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/dapperlabs/txgun",
+  "author": "Leo Zhang (zhangchiqing) <zhangchiqing@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "web3": "0.20.1"
+  }
+}
