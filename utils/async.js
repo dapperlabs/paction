@@ -1,18 +1,13 @@
-const copy = (json) => {
-  return JSON.parse(JSON.stringify(json));
-};
-
 exports.sequential = async (f, items) => {
-  const go = async (f, all, items) => {
-    if (items.length === 0) {
+  const go = async (f, all, items, i) => {
+    if (i >= items.length) {
       return all;
     }
 
-    const one = items.shift();
+    const one = items[i];
     const value = await f(one);
     all.push(value);
-    return go(f, all, items);
+    return go(f, all, items, i + 1);
   };
-  // TODO: avoid copy
-  return go(f, [], copy(items));
+  return go(f, [], items, 0);
 };
