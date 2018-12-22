@@ -1,7 +1,8 @@
 const { makeTxBase, makeRawTx } = require('../ethereum/transaction');
 const {
   dataForConstractor,
-  dataFromInstanceMethod,
+  dataForInstanceMethod,
+  instanceFromAddress,
 } = require('../ethereum/contract');
 
 // -> RawTx
@@ -12,19 +13,19 @@ exports.deployContract = (
 ) => {
   const data = dataForConstractor(abiJSON, params);
   const rawTx = makeRawTx(txBase, null, data);
-  console.log({ rawTx });
   return rawTx;
 };
 
 // -> RawTx
 exports.writeContract = (
-  instance, // instance
+  abiJSON, // ABI
   txBase, // txBase
   deployedAddress, // address
   method, // string
   params, // [a]
 ) => {
-  const data = dataFromInstanceMethod(instance, method, params);
+  const instance = instanceFromAddress(abiJSON, deployedAddress);
+  const data = dataForInstanceMethod(instance, method, params);
   const rawTx = makeRawTx(txBase, deployedAddress, data);
   return rawTx;
 };

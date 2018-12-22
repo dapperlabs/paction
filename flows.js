@@ -5,7 +5,7 @@ const { chooseOneOf } = require('./cli/inputs');
 const hardware = require('./signby/hardware');
 const fromSignature = require('./jsonrpc/payload/from');
 const Payload = require('./jsonrpc/payload');
-const { showAllWrites, showConstructor } = require('./cli/abi');
+const { showAllWrites, showConstructor, findMethod, firstWriteName } = require('./cli/abi');
 const { sequential } = require('./utils/async');
 
 exports.entry = async ask => {
@@ -33,6 +33,13 @@ exports.transferEther = async ask => {
   const to = await ask(
     'Please type the address of the your receiptian, i.e. (0xFF0E3299e55EFD859176D582FC805481e8344915): '
   );
+  const txBase = exports.askTxBase(ask, false);
+  console.log({ txBase });
+  const rawTx = writeActions.transferEther(txBase.nonce, txBase.value, txBase.gasPrice, to);
+  return exports.chooseHowToSign(ask, rawTx);
+};
+
+exports.askTxBase = async (ask, needAskLimit) => {
   const value = await ask(
     'Please type the Ether value you would like to send in wei:\nExample: (10000000000) for 10 gwei'
   );
@@ -40,25 +47,30 @@ exports.transferEther = async ask => {
   const gasPrice = await ask(
     'Please type the gas price in wei:\nExample: (10000000000) for 10 gwei'
   );
-  console.log({ to, value, nonce, gasPrice });
-  const rawTx = writeActions.transferEther(nonce, value, gasPrice, to);
-  return exports.chooseHowToSign(ask, rawTx);
+  let gasLimit = null;
+  if (needAskLimit) {
+    const gasLimit = await ask(
+      'Please type the gas limit in wei:\nExample: (10) for 10 gas'
+    );
+  }
+  const txBase = makeTxBase(nonce, gasPrice, gasLimit, value);
+  return txBase;
 };
 
-const askOneParam = ask => {
+const askFunctionParam = ask => {
   return async param => {
     return ask(
-      `Please type the constructor argument for "${param.name} (${
+      `Please type the function argument of "${param.name} (${
         param.type
       })":`
     );
   };
 };
 
-const askConstructors = async (ask, constructor) => {
-  const inputs = constructor.inputs;
+const askFunctionParams = async (ask, func) => {
+  const inputs = func.inputs;
   // [string]
-  const all = await sequential(askOneParam(ask), inputs);
+  const all = await sequential(askFunctionParam(ask), inputs);
   return all;
 };
 
@@ -72,7 +84,7 @@ exports.deployContract = async ask => {
   const constructor = showConstructor(abiJSON);
   console.log('Parsed contract constructor:');
   console.log(constructor);
-  const params = await askConstructors(ask, constructor);
+  const params = await askFunctionParams(ask, constructor);
   let value = '0';
   if (constructor.payable) {
     value = await ask(
@@ -92,28 +104,59 @@ exports.deployContract = async ask => {
 };
 
 exports.writeContract = async ask => {
-  const contractName = await ask('contract (Offers): ');
-  const method = await ask('method (setCOO): ');
-  const params = await ask(
-    'params (0x57831a0c76ba6b4fdcbadd6cb48cb26e8fc15e93): '
+  const abiPath = await ask(
+    'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
   );
+  // TODO: it's vulnerable to load a json file with any path, better to add some check
+  // but for simplicity, I'm allowing it for now.
+  const abiJSON = require(abiPath);
+  const { method, params, payable } = await exports.askContractorMethodCall(ask, abiJSON);
   const contractAddress = await ask(
     'contractAddress (0x57831a0c76ba6b4fdcbadd6cb48cb26e8fc15e93): '
   );
-  const value = await ask('value: ');
-  const nonce = await ask('nonce: ');
-  const gasPrice = await ask('gasPrice: ');
-  const gasLimit = await ask('gasLimit: ');
-  console.log({ contractName, method, params, value, nonce, gasPrice });
+  let value = '0';
+  if (payable) {
+    value = await ask(
+      'Please type the Ether value you would like to send to the method in wei:\nExample: (10000000000) for 10 gwei'
+    );
+  }
+  const nonce = parseInt(await ask('Please type the nonce, i.e. (30):'), 10);
+  const gasPrice = await ask(
+    'Please type the gas price in wei:\nExample: (10000000000) for 10 gwei'
+  );
+  const gasLimit = await ask(
+    'Please type the gas limit in wei:\nExample: (10) for 10 gas'
+  );
+  console.log({ method, params, value, nonce, gasPrice });
   const txBase = makeTxBase(nonce, gasPrice, gasLimit, value);
   const rawTx = writeActions.writeContract(
-    contractName,
+    abiJSON,
     txBase,
     contractAddress,
     method,
     params
   );
   return exports.chooseHowToSign(ask, rawTx);
+};
+
+exports.askContractorMethodCall = async (ask, abiJSON) => {
+  const allMethods = showAllWrites(abiJSON);
+  console.log(allMethods);
+  const example = firstWriteName(abiJSON);
+  const methodName = await ask(
+    `Please type the method name:\nExample: (${example})`
+  );
+  const method2 = findMethod(abiJSON, methodName);
+  const method = method2;
+  if (!method) {
+    return Promise.reject(new Error(`unknown method name: ${method}`));
+  }
+  const params = await askFunctionParams(ask, method);
+  return {
+    method: method.name,
+    params: params,
+    payable: method.payable,
+  };
 };
 
 exports.chooseHowToSign = async (ask, rawTx) => {
@@ -145,7 +188,7 @@ exports.signWithPrivateKey = async (ask, rawTx) => {
   );
   // hex0x
   const signedTx = signByKey.signWithPrivateKey(rawTx, privateKey);
-  exports.chooseHowToSendRawTransaction(ask, signedTx);
+  return exports.chooseHowToSendRawTransaction(ask, signedTx);
 };
 
 exports.signWithHardwareWallet = async (ask, rawTx) => {
@@ -155,7 +198,7 @@ exports.signWithHardwareWallet = async (ask, rawTx) => {
   const signature = await ask('please put your signature here:\n');
   // hex0x
   const signedTx = fromSignature(rawTx, signature);
-  exports.chooseHowToSendRawTransaction(ask, signedTx);
+  return exports.chooseHowToSendRawTransaction(ask, signedTx);
 };
 
 exports.chooseHowToSendRawTransaction = async (ask, signedTx) => {
