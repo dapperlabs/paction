@@ -163,6 +163,7 @@ exports.chooseHowToSign = async (ask, rawTx) => {
   const choice = await ask(
     chooseOneOf('ways to sign', [
       'send to the geth node to sign and send',
+      'send to the geth node and get back raw transaction with the signature',
       'generates payload for dapper signing service to sign and send',
       'Provide private key to sign',
       'show the json transaction for your own wallet to sign',
@@ -172,13 +173,30 @@ exports.chooseHowToSign = async (ask, rawTx) => {
 
   if (false) {
   } else if (choice === '1') {
+    return exports.signByGethAndSend(ask, rawTx);
   } else if (choice === '2') {
+    return exports.signByGeth(ask, rawTx);
   } else if (choice === '3') {
-    return exports.signWithPrivateKey(ask, rawTx);
   } else if (choice === '4') {
-    return exports.signWithHardwareWallet(ask, rawTx);
+    return exports.signWithPrivateKey(ask, rawTx);
   } else if (choice === '5') {
+    return exports.signWithHardwareWallet(ask, rawTx);
+  } else if (choice === '6') {
   }
+};
+
+exports.signByGethAndSend = async (ask, rawTx) => {
+  const from = await ask('Please provide the account to sign the transaction');
+  const payload = Payload.sendTransaction(from, rawTx);
+  console.log(payload);
+};
+
+exports.signByGeth = async (ask, rawTx) => {
+  const from = await ask('Please provide the account to sign the transaction:');
+  const payloadToSign = Payload.signTransaction(from, rawTx);
+  console.log(payloadToSign);
+  const signedTx = await ask('Please provide the signed tx:');
+  return exports.chooseHowToSendRawTransaction(ask, signedTx);
 };
 
 exports.signWithPrivateKey = async (ask, rawTx) => {
