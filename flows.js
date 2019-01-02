@@ -33,8 +33,7 @@ exports.transferEther = async ask => {
   const to = await ask(
     'Please type the address of the your receiptian, i.e. (0xFF0E3299e55EFD859176D582FC805481e8344915): '
   );
-  const txBase = exports.askTxBase(ask, false);
-  console.log({ txBase });
+  const txBase = await exports.askTxBase(ask, false);
   const rawTx = writeActions.transferEther(txBase.nonce, txBase.value, txBase.gasPrice, to);
   return exports.chooseHowToSign(ask, rawTx);
 };
@@ -49,7 +48,7 @@ exports.askTxBase = async (ask, needAskLimit) => {
   );
   let gasLimit = null;
   if (needAskLimit) {
-    const gasLimit = await ask(
+    gasLimit = await ask(
       'Please type the gas limit in wei:\nExample: (10) for 10 gas'
     );
   }
