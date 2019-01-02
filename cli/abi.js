@@ -9,13 +9,26 @@ const isWrite = (m) => {
   return m.type === 'function' && m.stateMutability !== 'view';
 };
 
-// abiJSON -> [string]
-exports.showAllWrites = (abiJSON) => {
+const isRead = (m) => {
+  return m.type === 'function' && m.stateMutability === 'view';
+};
+
+exports.showAll = (abiJSON, filter) => {
   const methods = abiJSON.abi;
-  const writes = methods.filter(isWrite);
+  const writes = methods.filter(filter);
   return writes.map((m) => {
     return `${m.name}(${formatInputs(m.inputs)})`;
   }).join('\n');
+};
+
+// abiJSON -> [string]
+exports.showAllWrites = (abiJSON) => {
+  return exports.showAll(abiJSON, isWrite);
+};
+
+// abiJSON -> [string]
+exports.showAllReads = (abiJSON) => {
+  return exports.showAll(abiJSON, isRead);
 };
 
 // abiJSON -> method?
@@ -34,4 +47,9 @@ exports.findMethod = (abiJSON, methodName) => {
 // abiJSON -> string
 exports.firstWriteName = (abiJSON) => {
   return abiJSON.abi.find(isWrite).name;
+};
+
+// abiJSON -> string
+exports.firstReadName = (abiJSON) => {
+  return abiJSON.abi.find(isRead).name;
 };

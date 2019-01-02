@@ -1,11 +1,12 @@
 const signByKey = require('./signby/key');
 const writeActions = require('./actions/write');
+const readActions = require('./actions/read');
 const { makeTxBase } = require('./ethereum/transaction');
 const { chooseOneOf } = require('./cli/inputs');
 const hardware = require('./signby/hardware');
 const fromSignature = require('./jsonrpc/payload/from');
 const Payload = require('./jsonrpc/payload');
-const { showAllWrites, showConstructor, findMethod, firstWriteName } = require('./cli/abi');
+const { showAllWrites, showAllReads, showConstructor, findMethod, firstWriteName ,firstReadName} = require('./cli/abi');
 const { sequential } = require('./utils/async');
 
 exports.entry = async ask => {
@@ -109,7 +110,7 @@ exports.writeContract = async ask => {
   // TODO: it's vulnerable to load a json file with any path, better to add some check
   // but for simplicity, I'm allowing it for now.
   const abiJSON = require(abiPath);
-  const { method, params, payable } = await exports.askContractorMethodCall(ask, abiJSON);
+  const { method, params } = await exports.askContractorWriteMethodCall(ask, abiJSON);
   const contractAddress = await ask(
     'contractAddress (0x57831a0c76ba6b4fdcbadd6cb48cb26e8fc15e93): '
   );
@@ -138,7 +139,7 @@ exports.writeContract = async ask => {
   return exports.chooseHowToSign(ask, rawTx);
 };
 
-exports.askContractorMethodCall = async (ask, abiJSON) => {
+exports.askContractorWriteMethodCall = async (ask, abiJSON) => {
   const allMethods = showAllWrites(abiJSON);
   console.log(allMethods);
   const example = firstWriteName(abiJSON);
@@ -155,6 +156,25 @@ exports.askContractorMethodCall = async (ask, abiJSON) => {
     method: method.name,
     params: params,
     payable: method.payable,
+  };
+};
+
+exports.askContractorReadMethodCall = async (ask, abiJSON) => {
+  const allMethods = showAllReads(abiJSON);
+  console.log(allMethods);
+  const example = firstReadName(abiJSON);
+  const methodName = await ask(
+    `Please type the method name:\nExample: (${example})`
+  );
+  const method2 = findMethod(abiJSON, methodName);
+  const method = method2;
+  if (!method) {
+    return Promise.reject(new Error(`unknown method name: ${method}`));
+  }
+  const params = await askFunctionParams(ask, method);
+  return {
+    method: method.name,
+    params: params,
   };
 };
 
@@ -189,6 +209,7 @@ exports.signByGethAndSend = async (ask, rawTx) => {
   const from = await ask('Please provide the account to sign the transaction');
   const payload = Payload.sendTransaction(from, rawTx);
   console.log(payload);
+  return payload;
 };
 
 exports.signByGeth = async (ask, rawTx) => {
@@ -222,4 +243,26 @@ exports.chooseHowToSendRawTransaction = async (ask, signedTx) => {
   // payload
   const payload = Payload.sendRawTransaction(signedTx);
   console.log(payload);
+  return payload;
+};
+
+exports.readContract = async (ask) => {
+  const abiPath = await ask(
+    'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
+  );
+  // TODO: it's vulnerable to load a json file with any path, better to add some check
+  // but for simplicity, I'm allowing it for now.
+  const abiJSON = require(abiPath);
+  const { method, params } = await exports.askContractorReadMethodCall(ask, abiJSON);
+  const contractAddress = await ask(
+    'contractAddress (0x57831a0c76ba6b4fdcbadd6cb48cb26e8fc15e93): '
+  );
+  const query = readActions.readContract(abiJSON, contractAddress, method, params);
+  return exports.chooseHowToCall(ask, query);
+};
+
+exports.chooseHowToCall = async (ask, query) => {
+  const payload = Payload.callWithQuery(query);
+  console.log(payload);
+  return payload;
 };
