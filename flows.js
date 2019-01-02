@@ -6,7 +6,7 @@ const { chooseOneOf } = require('./cli/inputs');
 const hardware = require('./signby/hardware');
 const fromSignature = require('./jsonrpc/payload/from');
 const Payload = require('./jsonrpc/payload');
-const { showAllWrites, showAllReads, showConstructor, findMethod, firstWriteName ,firstReadName} = require('./cli/abi');
+const { showAllWrites, showAllReads, showConstructor, findMethod, firstWriteName, firstReadName } = require('./cli/abi');
 const { sequential } = require('./utils/async');
 
 exports.entry = async ask => {
@@ -110,7 +110,7 @@ exports.writeContract = async ask => {
   // TODO: it's vulnerable to load a json file with any path, better to add some check
   // but for simplicity, I'm allowing it for now.
   const abiJSON = require(abiPath);
-  const { method, params } = await exports.askContractorWriteMethodCall(ask, abiJSON);
+  const { method, params, payable } = await exports.askContractorWriteMethodCall(ask, abiJSON);
   const contractAddress = await ask(
     'contractAddress (0x57831a0c76ba6b4fdcbadd6cb48cb26e8fc15e93): '
   );
