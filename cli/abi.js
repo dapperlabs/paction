@@ -1,7 +1,8 @@
-// [input] -> string
-const formatInputs = (inputs) => {
-  return inputs.map((i) => {
-    return `${i.type} ${i.name}`;
+// [arg] -> string
+const formatArgs = (args) => {
+  return args.map((i) => {
+    const name = i.name === '' ? '' : ' ' + i.name;
+    return `${i.type}${name}`;
   }).join(', ');
 };
 
@@ -15,10 +16,10 @@ const isRead = (m) => {
 
 exports.showAll = (abiJSON, filter) => {
   const methods = abiJSON.abi;
-  const writes = methods.filter(filter);
-  return writes.map((m) => {
-    return `${m.name}(${formatInputs(m.inputs)})`;
-  }).join('\n');
+  const matches = methods.filter(filter);
+  return matches.map((m) => {
+    return `${m.name}(${formatArgs(m.inputs)}) returns (${formatArgs(m.outputs)})`;
+  });
 };
 
 // abiJSON -> [string]
@@ -49,6 +50,7 @@ exports.firstWriteName = (abiJSON) => {
   return abiJSON.abi.find(isWrite).name;
 };
 
+// Note: assuming there is at least one read method
 // abiJSON -> string
 exports.firstReadName = (abiJSON) => {
   return abiJSON.abi.find(isRead).name;

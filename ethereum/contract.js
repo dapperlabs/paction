@@ -1,21 +1,21 @@
 const web3 = require('../utils/localweb3');
 
 // abiJSON -> Contract
-exports.contractFromABI = (abiJSON) => {
+const contractFromABI = (abiJSON) => {
   const Contract = web3.eth.contract(abiJSON.abi);
   return Contract;
 };
 
 // abiJSON -> address -> ContractInstance
 exports.instanceFromAddress = (abiJSON, deployedAddress) => {
-  const Contract = exports.contractFromABI(abiJSON);
+  const Contract = contractFromABI(abiJSON);
   const instance = Contract.at(deployedAddress);
   return instance;
 };
 
-// Contract -> [a] -> hex0x
+// abiJSON -> [a] -> hex0x
 exports.dataForConstractor = (abiJSON, params) => {
-  const Contract = exports.contractFromABI(abiJSON);
+  const Contract = contractFromABI(abiJSON);
   const data = Contract.new.getData.apply(
     Contract.new,
     params.concat([

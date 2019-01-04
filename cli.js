@@ -3,13 +3,14 @@ const { linebyline } = require('./cli/read');
 const Pubsub = require('./utils/pubsub');
 
 exports.start = () => {
-  const pubsub = Pubsub.singleton();
+  const inputs = Pubsub.singleton();
 
   const ask = (question) => {
-    console.log(); // insert empty line
-    console.log(question);
-    return pubsub.pop();
+    if (question) {
+      console.log('\x1b[36m%s\x1b[0m', question);
+    }
+    return inputs.pop();
   };
 
-  return linebyline(pubsub, ask, entry);
+  return linebyline(inputs, ask, entry);
 };

@@ -2,7 +2,8 @@ const signByKey = require('./signby/key');
 const writeActions = require('./actions/write');
 const readActions = require('./actions/read');
 const { makeTxBase } = require('./ethereum/transaction');
-const { chooseOneOf } = require('./cli/inputs');
+const inputs = require('./cli/inputs');
+const { askUntilValid } = require('./cli/format');
 const hardware = require('./signby/hardware');
 const fromSignature = require('./jsonrpc/payload/from');
 const Payload = require('./jsonrpc/payload');
@@ -10,8 +11,8 @@ const { showAllWrites, showAllReads, showConstructor, findMethod, firstWriteName
 const { sequential } = require('./utils/async');
 
 exports.entry = async ask => {
-  const action = await ask(
-    chooseOneOf('actions', [
+  const action = await askUntilValid(ask,
+    inputs.chooseOneOf('actions', [
       'Transfer Ether',
       'Deploy a contract',
       'Make a method call to a deployed contract',
@@ -19,20 +20,22 @@ exports.entry = async ask => {
     ])
   );
   if (false) {
-  } else if (action === '1') {
+  } else if (action === 1) {
     return exports.transferEther(ask);
-  } else if (action === '2') {
+  } else if (action === 2) {
     return exports.deployContract(ask);
-  } else if (action === '3') {
+  } else if (action === 3) {
     return exports.writeContract(ask);
-  } else if (action === '4') {
+  } else if (action === 4) {
     return exports.readContract(ask);
   }
 };
 
 exports.transferEther = async ask => {
-  const to = await ask(
-    'Please type the address of the your receiptian, i.e. (0xFF0E3299e55EFD859176D582FC805481e8344915): '
+  const to = await askUntilValid(ask,
+    inputs.address(
+      'Please type the address of the your receiptian, i.e. (0xFF0E3299e55EFD859176D582FC805481e8344915): '
+    )
   );
   const txBase = await exports.askTxBase(ask, false);
   const rawTx = writeActions.transferEther(txBase.nonce, txBase.value, txBase.gasPrice, to);
@@ -40,17 +43,20 @@ exports.transferEther = async ask => {
 };
 
 exports.askTxBase = async (ask, needAskLimit) => {
-  const value = await ask(
-    'Please type the Ether value you would like to send in wei:\nExample: (10000000000) for 10 gwei'
+  const value = await askUntilValid(ask,
+    inputs.bignumber(
+      'Please type the Ether value you would like to send in wei:\nExample: (10000000000) for 10 gwei'
+    )
   );
-  const nonce = parseInt(await ask('Please type the nonce, i.e. (30):'), 10);
-  const gasPrice = await ask(
-    'Please type the gas price in wei:\nExample: (10000000000) for 10 gwei'
+  const nonce = await askUntilValid(ask,
+    inputs.nonce('Please type the nonce, i.e. (30):'));
+  const gasPrice = await askUntilValid(ask,
+    inputs.bignumber('Please type the gas price in wei:\nExample: (10000000000) for 10 gwei')
   );
   let gasLimit = null;
   if (needAskLimit) {
-    gasLimit = await ask(
-      'Please type the gas limit in wei:\nExample: (10) for 10 gas'
+    gasLimit = await askUntilValid(ask,
+      inputs.bignumber('Please type the gas limit in wei:\nExample: (10) for 10 gas')
     );
   }
   const txBase = makeTxBase(nonce, gasPrice, gasLimit, value);
@@ -75,58 +81,57 @@ const askFunctionParams = async (ask, func) => {
 };
 
 exports.deployContract = async ask => {
-  const abiPath = await ask(
+  const abiJSON = await askUntilValid(inputs.abiPath(
     'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
-  );
+  ));
   // TODO: it's vulnerable to load a json file with any path, better to add some check
   // but for simplicity, I'm allowing it for now.
-  const abiJSON = require(abiPath);
   const constructor = showConstructor(abiJSON);
   console.log('Parsed contract constructor:');
   console.log(constructor);
   const params = await askFunctionParams(ask, constructor);
   let value = '0';
   if (constructor.payable) {
-    value = await ask(
+    value = await askUntilValid(inputs.bignumber(
       'Please type the Ether value you would like to send to the contract constructor in wei:\nExample: (10000000000) for 10 gwei'
-    );
+    ));
   }
-  const nonce = parseInt(await ask('Please type the nonce, i.e. (30):'), 10);
-  const gasPrice = await ask(
+  const nonce = await askUntilValid(inputs.nonce('Please type the nonce, i.e. (30):'));
+  const gasPrice = await askUntilValid(inputs.bignumber(
     'Please type the gas price in wei:\nExample: (10000000000) for 10 gwei'
-  );
-  const gasLimit = await ask(
+  ));
+  const gasLimit = await askUntilValid(inputs.bignumber(
     'Please type the gas limit in wei:\nExample: (10) for 10 gas'
-  );
+  ));
   const txBase = makeTxBase(nonce, gasPrice, gasLimit, value);
   const rawTx = writeActions.deployContract(abiJSON, txBase, params);
   return exports.chooseHowToSign(ask, rawTx);
 };
 
 exports.writeContract = async ask => {
-  const abiPath = await ask(
+  const abiPath = await askUntilValid(inputs.abiPath(
     'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
-  );
+  ));
   // TODO: it's vulnerable to load a json file with any path, better to add some check
   // but for simplicity, I'm allowing it for now.
   const abiJSON = require(abiPath);
   const { method, params, payable } = await exports.askContractorWriteMethodCall(ask, abiJSON);
-  const contractAddress = await ask(
+  const contractAddress = await askUntilValid(inputs.address(
     'contractAddress (0x57831a0c76ba6b4fdcbadd6cb48cb26e8fc15e93): '
-  );
+  ));
   let value = '0';
   if (payable) {
-    value = await ask(
+    value = await askUntilValid(inputs.bignumber(
       'Please type the Ether value you would like to send to the method in wei:\nExample: (10000000000) for 10 gwei'
-    );
+    ));
   }
-  const nonce = parseInt(await ask('Please type the nonce, i.e. (30):'), 10);
-  const gasPrice = await ask(
+  const nonce = await askUntilValid(inputs.nonce('Please type the nonce, i.e. (30):'));
+  const gasPrice = await askUntilValid(inputs.bignumber(
     'Please type the gas price in wei:\nExample: (10000000000) for 10 gwei'
-  );
-  const gasLimit = await ask(
+  ));
+  const gasLimit = await askUntilValid(inputs.bignumber(
     'Please type the gas limit in wei:\nExample: (10) for 10 gas'
-  );
+  ));
   console.log({ method, params, value, nonce, gasPrice });
   const txBase = makeTxBase(nonce, gasPrice, gasLimit, value);
   const rawTx = writeActions.writeContract(
@@ -140,7 +145,7 @@ exports.writeContract = async ask => {
 };
 
 exports.askContractorWriteMethodCall = async (ask, abiJSON) => {
-  const allMethods = showAllWrites(abiJSON);
+  const allMethods = showAllWrites(abiJSON).join('\n');
   console.log(allMethods);
   const example = firstWriteName(abiJSON);
   const methodName = await ask(
@@ -160,7 +165,7 @@ exports.askContractorWriteMethodCall = async (ask, abiJSON) => {
 };
 
 exports.askContractorReadMethodCall = async (ask, abiJSON) => {
-  const allMethods = showAllReads(abiJSON);
+  const allMethods = showAllReads(abiJSON).join('\n');
   console.log(allMethods);
   const example = firstReadName(abiJSON);
   const methodName = await ask(
@@ -180,8 +185,8 @@ exports.askContractorReadMethodCall = async (ask, abiJSON) => {
 
 exports.chooseHowToSign = async (ask, rawTx) => {
   console.log(rawTx);
-  const choice = await ask(
-    chooseOneOf('ways to sign', [
+  const choice = await askUntilValid(ask,
+    inputs.chooseOneOf('ways to sign', [
       'send to the geth node to sign and send',
       'send to the geth node and get back raw transaction with the signature',
       'generates payload for dapper signing service to sign and send',
@@ -192,28 +197,28 @@ exports.chooseHowToSign = async (ask, rawTx) => {
   );
 
   if (false) {
-  } else if (choice === '1') {
+  } else if (choice === 1) {
     return exports.signByGethAndSend(ask, rawTx);
-  } else if (choice === '2') {
+  } else if (choice === 2) {
     return exports.signByGeth(ask, rawTx);
-  } else if (choice === '3') {
-  } else if (choice === '4') {
+  } else if (choice === 3) {
+  } else if (choice === 4) {
     return exports.signWithPrivateKey(ask, rawTx);
-  } else if (choice === '5') {
+  } else if (choice === 5) {
     return exports.signWithHardwareWallet(ask, rawTx);
-  } else if (choice === '6') {
+  } else if (choice === 6) {
   }
 };
 
 exports.signByGethAndSend = async (ask, rawTx) => {
-  const from = await ask('Please provide the account to sign the transaction');
+  const from = await askUntilValid(inputs.address('Please provide the account to sign the transaction'));
   const payload = Payload.sendTransaction(from, rawTx);
   console.log(payload);
   return payload;
 };
 
 exports.signByGeth = async (ask, rawTx) => {
-  const from = await ask('Please provide the account to sign the transaction:');
+  const from = await askUntilValid(inputs.address('Please provide the account to sign the transaction'));
   const payloadToSign = Payload.signTransaction(from, rawTx);
   console.log(payloadToSign);
   const signedTx = await ask('Please provide the signed tx:');
