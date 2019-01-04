@@ -1,13 +1,14 @@
 const { entry } = require('./flows');
 const { linebyline } = require('./cli/read');
 const Pubsub = require('./utils/pubsub');
+const outputs = require('./cli/outputs');
 
 exports.start = () => {
   const inputs = Pubsub.singleton();
 
   const ask = (question) => {
     if (question) {
-      console.log('\x1b[36m%s\x1b[0m', question);
+      outputs.question(question);
     }
     return inputs.pop();
   };

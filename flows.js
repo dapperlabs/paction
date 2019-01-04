@@ -3,6 +3,7 @@ const writeActions = require('./actions/write');
 const readActions = require('./actions/read');
 const { makeTxBase } = require('./ethereum/transaction');
 const inputs = require('./cli/inputs');
+const outputs = require('./cli/outputs');
 const { askUntilValid } = require('./cli/format');
 const hardware = require('./signby/hardware');
 const fromSignature = require('./jsonrpc/payload/from');
@@ -11,6 +12,10 @@ const { showAllWrites, showAllReads, showConstructor, findMethod, firstWriteName
 const { sequential } = require('./utils/async');
 
 exports.entry = async ask => {
+  return exports.answer(ask).then(outputs.answer);
+};
+
+exports.answer = async ask => {
   const action = await askUntilValid(ask,
     inputs.chooseOneOf('actions', [
       'Transfer Ether',
@@ -210,14 +215,13 @@ exports.chooseHowToSign = async (ask, rawTx) => {
 exports.signByGethAndSend = async (ask, rawTx) => {
   const from = await askUntilValid(ask, inputs.address('Please provide the account to sign the transaction'));
   const payload = Payload.sendTransaction(from, rawTx);
-  console.log(payload);
   return payload;
 };
 
 exports.signByGeth = async (ask, rawTx) => {
   const from = await askUntilValid(ask, inputs.address('Please provide the account to sign the transaction'));
   const payloadToSign = Payload.signTransaction(from, rawTx);
-  console.log(payloadToSign);
+  outputs.answer(payloadToSign);
   const signedTx = await ask('Please provide the signed tx:');
   return exports.chooseHowToSendRawTransaction(ask, signedTx);
 };
@@ -244,7 +248,6 @@ exports.signWithHardwareWallet = async (ask, rawTx) => {
 exports.chooseHowToSendRawTransaction = async (ask, signedTx) => {
   // payload
   const payload = Payload.sendRawTransaction(signedTx);
-  console.log(payload);
   return payload;
 };
 
@@ -265,6 +268,5 @@ exports.readContract = async (ask) => {
 
 exports.chooseHowToCall = async (ask, query) => {
   const payload = Payload.callWithQuery(query);
-  console.log(payload);
   return payload;
 };
