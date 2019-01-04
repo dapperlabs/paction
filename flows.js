@@ -81,7 +81,7 @@ const askFunctionParams = async (ask, func) => {
 };
 
 exports.deployContract = async ask => {
-  const abiJSON = await askUntilValid(inputs.abiPath(
+  const abiJSON = await askUntilValid(ask, inputs.abiPath(
     'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
   ));
   // TODO: it's vulnerable to load a json file with any path, better to add some check
@@ -92,15 +92,15 @@ exports.deployContract = async ask => {
   const params = await askFunctionParams(ask, constructor);
   let value = '0';
   if (constructor.payable) {
-    value = await askUntilValid(inputs.bignumber(
+    value = await askUntilValid(ask, inputs.bignumber(
       'Please type the Ether value you would like to send to the contract constructor in wei:\nExample: (10000000000) for 10 gwei'
     ));
   }
-  const nonce = await askUntilValid(inputs.nonce('Please type the nonce, i.e. (30):'));
-  const gasPrice = await askUntilValid(inputs.bignumber(
+  const nonce = await askUntilValid(ask, inputs.nonce('Please type the nonce, i.e. (30):'));
+  const gasPrice = await askUntilValid(ask, inputs.bignumber(
     'Please type the gas price in wei:\nExample: (10000000000) for 10 gwei'
   ));
-  const gasLimit = await askUntilValid(inputs.bignumber(
+  const gasLimit = await askUntilValid(ask, inputs.bignumber(
     'Please type the gas limit in wei:\nExample: (10) for 10 gas'
   ));
   const txBase = makeTxBase(nonce, gasPrice, gasLimit, value);
@@ -109,27 +109,27 @@ exports.deployContract = async ask => {
 };
 
 exports.writeContract = async ask => {
-  const abiPath = await askUntilValid(inputs.abiPath(
+  const abiPath = await askUntilValid(ask, inputs.abiPath(
     'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
   ));
   // TODO: it's vulnerable to load a json file with any path, better to add some check
   // but for simplicity, I'm allowing it for now.
   const abiJSON = require(abiPath);
   const { method, params, payable } = await exports.askContractorWriteMethodCall(ask, abiJSON);
-  const contractAddress = await askUntilValid(inputs.address(
+  const contractAddress = await askUntilValid(ask, inputs.address(
     'contractAddress (0x57831a0c76ba6b4fdcbadd6cb48cb26e8fc15e93): '
   ));
   let value = '0';
   if (payable) {
-    value = await askUntilValid(inputs.bignumber(
+    value = await askUntilValid(ask, inputs.bignumber(
       'Please type the Ether value you would like to send to the method in wei:\nExample: (10000000000) for 10 gwei'
     ));
   }
-  const nonce = await askUntilValid(inputs.nonce('Please type the nonce, i.e. (30):'));
-  const gasPrice = await askUntilValid(inputs.bignumber(
+  const nonce = await askUntilValid(ask, inputs.nonce('Please type the nonce, i.e. (30):'));
+  const gasPrice = await askUntilValid(ask, inputs.bignumber(
     'Please type the gas price in wei:\nExample: (10000000000) for 10 gwei'
   ));
-  const gasLimit = await askUntilValid(inputs.bignumber(
+  const gasLimit = await askUntilValid(ask, inputs.bignumber(
     'Please type the gas limit in wei:\nExample: (10) for 10 gas'
   ));
   console.log({ method, params, value, nonce, gasPrice });
@@ -211,14 +211,14 @@ exports.chooseHowToSign = async (ask, rawTx) => {
 };
 
 exports.signByGethAndSend = async (ask, rawTx) => {
-  const from = await askUntilValid(inputs.address('Please provide the account to sign the transaction'));
+  const from = await askUntilValid(ask, inputs.address('Please provide the account to sign the transaction'));
   const payload = Payload.sendTransaction(from, rawTx);
   console.log(payload);
   return payload;
 };
 
 exports.signByGeth = async (ask, rawTx) => {
-  const from = await askUntilValid(inputs.address('Please provide the account to sign the transaction'));
+  const from = await askUntilValid(ask, inputs.address('Please provide the account to sign the transaction'));
   const payloadToSign = Payload.signTransaction(from, rawTx);
   console.log(payloadToSign);
   const signedTx = await ask('Please provide the signed tx:');
