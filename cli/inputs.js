@@ -5,9 +5,9 @@ const { isValidAddress } = require('ethereumjs-util');
 exports.chooseOneOf = (name, choices) => {
   const options = choices
     .map((item, index) => {
-      return `${index + 1}. ${item}\n`;
+      return `${index + 1}. ${item}`;
     })
-    .join('');
+    .join('\n');
   const count = options.length;
   return {
     question: `Please choose one of the following ${name}:\n${options}`,

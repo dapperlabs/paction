@@ -12,10 +12,6 @@ const { showAllWrites, showAllReads, showConstructor, findMethod, firstWriteName
 const { sequential } = require('./utils/async');
 
 exports.entry = async ask => {
-  return exports.answer(ask).then(outputs.answer);
-};
-
-exports.answer = async ask => {
   const action = await askUntilValid(ask,
     inputs.chooseOneOf('actions', [
       'Transfer Ether',
@@ -215,6 +211,7 @@ exports.chooseHowToSign = async (ask, rawTx) => {
 exports.signByGethAndSend = async (ask, rawTx) => {
   const from = await askUntilValid(ask, inputs.address('Please provide the account to sign the transaction'));
   const payload = Payload.sendTransaction(from, rawTx);
+  outputs.answer(payload);
   return payload;
 };
 
@@ -248,6 +245,7 @@ exports.signWithHardwareWallet = async (ask, rawTx) => {
 exports.chooseHowToSendRawTransaction = async (ask, signedTx) => {
   // payload
   const payload = Payload.sendRawTransaction(signedTx);
+  outputs.answer(payload);
   return payload;
 };
 
@@ -268,5 +266,6 @@ exports.readContract = async (ask) => {
 
 exports.chooseHowToCall = async (ask, query) => {
   const payload = Payload.callWithQuery(query);
+  outputs.answer(payload);
   return payload;
 };
