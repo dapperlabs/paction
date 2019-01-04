@@ -1,3 +1,4 @@
+const path = require('path');
 const { isValidAddress } = require('ethereumjs-util');
 
 // string -> [string] -> string
@@ -45,7 +46,8 @@ exports.abiPath = (question) => {
   return {
     question: question,
     validator: (answer) => {
-      const json = require(answer);
+      // relative path to cwd
+      const json = require(path.resolve(answer));
       return [true, json];
     },
   };

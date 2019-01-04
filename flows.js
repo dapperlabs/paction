@@ -109,12 +109,9 @@ exports.deployContract = async ask => {
 };
 
 exports.writeContract = async ask => {
-  const abiPath = await askUntilValid(ask, inputs.abiPath(
+  const abiJSON = await askUntilValid(ask, inputs.abiPath(
     'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
   ));
-  // TODO: it's vulnerable to load a json file with any path, better to add some check
-  // but for simplicity, I'm allowing it for now.
-  const abiJSON = require(abiPath);
   const { method, params, payable } = await exports.askContractorWriteMethodCall(ask, abiJSON);
   const contractAddress = await askUntilValid(ask, inputs.address(
     'contractAddress (0x57831a0c76ba6b4fdcbadd6cb48cb26e8fc15e93): '
