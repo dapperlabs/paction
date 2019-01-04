@@ -4,7 +4,7 @@ const readActions = require('./actions/read');
 const { makeTxBase } = require('./ethereum/transaction');
 const inputs = require('./cli/inputs');
 const outputs = require('./cli/outputs');
-const { askUntilValid } = require('./cli/format');
+const { askUntilValid } = require('./cli/ask');
 const hardware = require('./signby/hardware');
 const fromSignature = require('./jsonrpc/payload/from');
 const Payload = require('./jsonrpc/payload');
@@ -130,7 +130,6 @@ exports.writeContract = async ask => {
   const gasLimit = await askUntilValid(ask, inputs.bignumber(
     'Please type the gas limit in wei:\nExample: (10) for 10 gas'
   ));
-  console.log({ method, params, value, nonce, gasPrice });
   const txBase = makeTxBase(nonce, gasPrice, gasLimit, value);
   const rawTx = writeActions.writeContract(
     abiJSON,
@@ -182,7 +181,6 @@ exports.askContractorReadMethodCall = async (ask, abiJSON) => {
 };
 
 exports.chooseHowToSign = async (ask, rawTx) => {
-  console.log(rawTx);
   const choice = await askUntilValid(ask,
     inputs.chooseOneOf('ways to sign', [
       'send to the geth node to sign and send',

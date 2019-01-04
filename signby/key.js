@@ -17,10 +17,8 @@ exports.signWithPrivateKey = (rawTx, privateKey) => {
     value: bnStringToHex0x(rawTx.value),
     data: rawTx.data || '',
   };
-  console.log(rawTx0x);
   // https://github.com/ethereumjs/ethereumjs-tx/blob/master/index.js#L13
   const tx = new Tx(rawTx0x);
-  console.log(privateKey);
   const key = hex0xToBuffer(privateKey);
   tx.sign(key);
   const buf = tx.serialize();
