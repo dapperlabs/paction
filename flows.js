@@ -2,11 +2,12 @@ const signByKey = require('./signby/key');
 const writeActions = require('./actions/write');
 const readActions = require('./actions/read');
 const { makeTxBase } = require('./ethereum/transaction');
+const Signature = require('./ethereum/signature');
 const inputs = require('./cli/inputs');
 const outputs = require('./cli/outputs');
 const { askUntilValid } = require('./cli/ask');
 const hardware = require('./signby/hardware');
-const fromSignature = require('./jsonrpc/payload/from');
+const { fromSignature } = require('./jsonrpc/payload/from');
 const Payload = require('./jsonrpc/payload');
 const { showAllWrites, showAllReads, showConstructor, findMethod, firstWriteName, firstReadName } = require('./cli/abi');
 const { sequential } = require('./utils/async');
@@ -17,7 +18,8 @@ exports.entry = async ask => {
       'Transfer Ether',
       'Deploy a contract',
       'Make a method call to a deployed contract',
-      'Read a contract'
+      'Read a contract',
+      'Query the current nonce for an account',
     ])
   );
   if (false) {
@@ -29,6 +31,8 @@ exports.entry = async ask => {
     return exports.writeContract(ask);
   } else if (action === 4) {
     return exports.readContract(ask);
+  } else if (action === 5) {
+    return exports.queryNonce(ask);
   }
 };
 
@@ -198,6 +202,8 @@ exports.chooseHowToSign = async (ask, rawTx) => {
   } else if (choice === 2) {
     return exports.signByGeth(ask, rawTx);
   } else if (choice === 3) {
+    console.log(rawTx);
+    // return exports.signByDapperService(ask, rawTx);
   } else if (choice === 4) {
     return exports.signWithPrivateKey(ask, rawTx);
   } else if (choice === 5) {
@@ -231,13 +237,16 @@ exports.signWithPrivateKey = async (ask, rawTx) => {
 };
 
 exports.signWithHardwareWallet = async (ask, rawTx) => {
-  const inputsForTezor = hardware.tezor(rawTx);
-  console.log(inputsForTezor);
-  // hex0x
-  const signature = await ask('please put your signature here:\n');
-  // hex0x
-  const signedTx = fromSignature(rawTx, signature);
-  return exports.chooseHowToSendRawTransaction(ask, signedTx);
+  const inputsForHardware = hardware.ledger(rawTx);
+  console.log(inputsForHardware);
+  console.log('Please type the signature (v, r, s) here:\n');
+  const v = await ask('Please provide v: (Example: (1b)')
+  const r = await ask('Please provide r: (Example: (feee...)')
+  const s = await ask('Please provide s: (Example: (feee...)')
+  const rsv = '0x' + r + s + v;
+  const signature = Signature.fromHex0x(rsv);
+  const payload = fromSignature(rawTx, signature);
+  console.log(payload);
 };
 
 exports.chooseHowToSendRawTransaction = async (ask, signedTx) => {
@@ -264,6 +273,17 @@ exports.readContract = async (ask) => {
 
 exports.chooseHowToCall = async (ask, query) => {
   const payload = Payload.callWithQuery(query);
+  outputs.answer(payload);
+  return payload;
+};
+
+exports.queryNonce = async (ask) => {
+  const address = await askUntilValid(ask,
+    inputs.address(
+      'Please type the address i.e. (0xFF0E3299e55EFD859176D582FC805481e8344915): '
+    )
+  );
+  const payload = Payload.getTransactionCount(address);
   outputs.answer(payload);
   return payload;
 };

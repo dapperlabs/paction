@@ -1,18 +1,11 @@
-const Tx = require('ethereumjs-tx');
 const payload = require('../payload');
-const { fromHex0x } = require('../../ethereum/signature');
+const { toEthTx } = require('../../ethereum/transaction');
+const { bufferToHex0x } = require('../../utils/hex');
 
-// RawTx -> hex0x -> payload
+// RawTx -> signature -> payload
 exports.fromSignature = (rawTx, signature) => {
-  // signature
-  const { r, s, v } = fromHex0x(signature);
-  return exports.fromRSV(rawTx, r, s, v);
-};
-
-// RawTx -> Buffer -> Buffer -> Buffer -> payload
-exports.fromRSV = (rawTx, r, s, v) => {
-  const txWithSignature = Object.assign({}, rawTx, { r, s, v });
-  const tx = new Tx(txWithSignature);
-  const signedTx = tx.serialize();
+  const ethTx = toEthTx(rawTx, signature);
+  const buf = ethTx.serialize();
+  const signedTx = bufferToHex0x(buf);
   return payload.sendRawTransaction(signedTx);
 };

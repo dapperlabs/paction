@@ -80,3 +80,18 @@ exports.call = (deployedAddress, data, blockNumber) => {
 exports.callWithQuery = (query) => {
   return exports.call(query.deployedAddress, query.data);
 };
+
+// get nonce
+// address -> blockNumber? -> payload
+exports.getTransactionCount = (address, blockNumber) => {
+  const payload = {
+    jsonrpc: '2.0',
+    method: 'eth_getTransactionCount',
+    params: [
+      address,
+      blockNumber ? numberToHex0x(blockNumber) : 'latest',
+    ],
+    id: 1,
+  };
+  return JSON.stringify(payload);
+};
