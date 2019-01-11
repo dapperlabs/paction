@@ -54,3 +54,14 @@ exports.toRLP = (rawTx) => {
   const buf = ethTx.serialize();
   return bufferToHex0x(buf);
 };
+
+// RawTx -> unsignedTxHash
+exports.forSigning = (rawTx) => {
+  const tx = exports.toEthTx(rawTx);
+  const includeSignature = false;
+  // buffer
+  const txHash = tx.hash(includeSignature);
+  // hex0x
+  const rawTxHash = bufferToHex0x(txHash);
+  return rawTxHash;
+};
