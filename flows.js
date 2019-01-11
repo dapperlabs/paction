@@ -191,8 +191,7 @@ exports.chooseHowToSign = async (ask, rawTx) => {
       'send to the geth node and get back raw transaction with the signature',
       'generates payload for dapper signing service to sign and send',
       'Provide private key to sign',
-      'show the json transaction for your own wallet to sign',
-      'show the js code for signing with your metamask wallet'
+      'show transaction data',
     ])
   );
 
@@ -207,8 +206,7 @@ exports.chooseHowToSign = async (ask, rawTx) => {
   } else if (choice === 4) {
     return exports.signWithPrivateKey(ask, rawTx);
   } else if (choice === 5) {
-    return exports.signWithHardwareWallet(ask, rawTx);
-  } else if (choice === 6) {
+    return exports.showTransactionData(ask, rawTx);
   }
 };
 
@@ -286,4 +284,8 @@ exports.queryNonce = async (ask) => {
   const payload = Payload.getTransactionCount(address);
   outputs.answer(payload);
   return payload;
+};
+
+exports.showTransactionData = async (ask, rawTx) => {
+  outputs.answer(JSON.stringify(rawTx, null, 2));
 };
