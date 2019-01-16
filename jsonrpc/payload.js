@@ -75,10 +75,9 @@ exports.call = (deployedAddress, data, blockNumber) => {
   return JSON.stringify(payload);
 };
 
-// address -> query -> payload
-// TODO: support blockNumber
-exports.callWithQuery = (query) => {
-  return exports.call(query.deployedAddress, query.data);
+// address -> query -> number? -> payload
+exports.callWithQuery = (query, blockNumber) => {
+  return exports.call(query.deployedAddress, query.data, blockNumber);
 };
 
 // get nonce

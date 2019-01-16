@@ -270,7 +270,10 @@ exports.readContract = async (ask) => {
 };
 
 exports.chooseHowToCall = async (ask, query) => {
-  const payload = Payload.callWithQuery(query);
+  let blockNumber = await ask('Optional: specify with a blockNumber:');
+  blockNumber = blockNumber === '' ? null : parseInt(blockNumber, 10);
+  blockNumber = isNaN(blockNumber) ? null : blockNumber;
+  const payload = Payload.callWithQuery(query, blockNumber);
   outputs.answer(payload);
   return payload;
 };
