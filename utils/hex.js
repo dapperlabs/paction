@@ -14,10 +14,10 @@ exports.bnStringToHex0x = (str) =>
   exports.hexToHex0x(exports.bnStringToHex(str));
 
 // 204 -> 'cc'
+// 292 -> '124' // NOT '0124'
 exports.numberToHex = (n) => {
-  // https://stackoverflow.com/questions/57803/how-to-convert-decimal-to-hex-in-javascript
   const hex = n.toString(16);
-  return hex.length % 2 ? '0' + hex : hex;
+  return hex;
 };
 
 // 204 -> '0xcc'
