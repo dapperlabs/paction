@@ -5,9 +5,16 @@
   "repository": "https://github.com/dapperlabs/txgun",
   "author": "Leo Zhang (zhangchiqing) <zhangchiqing@gmail.com>",
   "license": "MIT",
+  "scripts": {
+    "test": "mocha tests/*.test.js"
+  },
   "dependencies": {
     "ethereumjs-tx": "^1.3.7",
     "ethereumjs-util": "^6.0.0",
     "web3": "0.20.1"
+  },
+  "devDependencies": {
+    "mocha": "^5.2.0",
+    "sinon": "^7.2.3"
   }
 }

@@ -1,0 +1,14 @@
+language: node_js
+node_js:
+  - 8.9.0
+cache:
+  yarn: true
+  directories:
+    - node_modules
+branches:
+  only:
+    - master
+sudo: required
+before_install:
+install:
+  - travis_retry yarn install
