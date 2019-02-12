@@ -290,5 +290,7 @@ exports.queryNonce = async (ask) => {
 };
 
 exports.showTransactionData = async (ask, rawTx) => {
-  outputs.answer(JSON.stringify(rawTx, null, 2));
+  const txData = JSON.stringify(rawTx, null, 2);
+  outputs.answer(txData);
+  return txData;
 };
