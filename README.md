@@ -46,7 +46,56 @@ txgun can read inputs from standard inputs, you can save your types by saving yo
 You can also copy paste the multi-line inputs.
 <img width="835" alt="transfer ether" src="https://user-images.githubusercontent.com/811374/50715069-409cc000-1030-11e9-9b73-ee4783e52353.png">
 
-## TODO
-- [ ] read what's the next nonce for both mainnet and testnet
-- [ ] implement signing by hardware wallet
-- [ ] implement signing by metamask
+## How to programmatically use it?
+
+For example, if you want to programmatically making multiple txs to write to a contract. You can write a script using txgun.
+
+```js
+const { writeContract } = require('./flows');
+const axios = require('axios');
+const inputs = [
+  [
+    './abis/Offers.json',
+    'setMinimumTotalValue',
+    '104500000000000000',
+    '0xc34518fd04ff34a566430ebe9ca82161fc8b767d',
+    '37',
+    '10000000000',
+    '30000',
+    '4',
+    '0xXXXXXXXXXXXXXXX_YOUR_PRIVATE_KEY_HERE',
+  ],
+  [
+    './abis/Offers.json',
+    'setOfferCut',
+    '900',
+    '0xc34518fd04ff34a566430ebe9ca82161fc8b767d',
+    '38',
+    '10000000000',
+    '30000',
+    '4',
+    '0xXXXXXXXXXXXXXXX_YOUR_PRIVATE_KEY_HERE',
+  ],
+];
+
+const sendJSONRPC = async (payload) => {
+  return axios.post('https://rinkeby.infura.io/', payload);
+};
+
+const sendOne = async (input) => {
+  const jsonrpcpayload = await writeContract((question) => {
+    console.log({ question });
+    return input.shift();
+  });
+  await sendJSONRPC(jsonrpcpayload);
+};
+
+const main = async () => {
+  // sign and send txs one by one
+  for (let i = 0; i < inputs.length; i++) {
+    await sendOne(inputs[i]);
+  }
+};
+
+main();
+```
