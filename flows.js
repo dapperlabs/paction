@@ -11,6 +11,7 @@ const { fromSignature } = require('./jsonrpc/payload/from');
 const Payload = require('./jsonrpc/payload');
 const { showAllWrites, showAllReads, showConstructor, findMethod, firstWriteName, firstReadName } = require('./cli/abi');
 const { sequential } = require('./utils/async');
+const FunctionParam = require('./types/param');
 
 exports.entry = async ask => {
   const action = await askUntilValid(ask,
@@ -70,11 +71,14 @@ exports.askTxBase = async (ask, needAskLimit) => {
 
 const askFunctionParam = ask => {
   return async param => {
-    return ask(
+    const isArr = FunctionParam.isArray(param);
+    const extraIntro = isArr ? ' (please use "," to separate array items):' : '';
+    const paramValue = ask(
       `Please type the function argument of "${param.name} (${
         param.type
-      })":`
+      })"${extraIntro}`
     );
+    return isArr ? paramValue.split(',') : paramValue;
   };
 };
 
