@@ -11,6 +11,7 @@ const { fromSignature } = require('./jsonrpc/payload/from');
 const Payload = require('./jsonrpc/payload');
 const { showAllWrites, showAllReads, showConstructor, findMethod, firstWriteName, firstReadName } = require('./cli/abi');
 const { sequential } = require('./utils/async');
+const FunctionParam = require('./types/param');
 
 exports.entry = async ask => {
   const action = await askUntilValid(ask,
@@ -69,12 +70,9 @@ exports.askTxBase = async (ask, needAskLimit) => {
 };
 
 const askFunctionParam = ask => {
-  return async param => {
-    return ask(
-      `Please type the function argument of "${param.name} (${
-        param.type
-      })":`
-    );
+  return param => {
+    const { question, validator } = FunctionParam.toInputs(param);
+    return askUntilValid(ask, { question, validator });
   };
 };
 
