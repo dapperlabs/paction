@@ -70,15 +70,9 @@ exports.askTxBase = async (ask, needAskLimit) => {
 };
 
 const askFunctionParam = ask => {
-  return async param => {
-    const isArr = FunctionParam.isArray(param);
-    const extraIntro = isArr ? ' (please use "," to separate array items):' : '';
-    const paramValue = ask(
-      `Please type the function argument of "${param.name} (${
-        param.type
-      })"${extraIntro}`
-    );
-    return isArr ? paramValue.split(',') : paramValue;
+  return param => {
+    const { question, validator } = FunctionParam.toInputs(param);
+    return askUntilValid(ask, { question, validator });
   };
 };
 
