@@ -1,0 +1,110 @@
+{
+  "contractName": "TestContractNoConstructor",
+  "abi": [],
+  "metadata": "{\"compiler\":{\"version\":\"0.5.8+commit.23d335f2\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/data/contracts/TestContractNoConstructor.sol\":\"TestContractNoConstructor\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/data/contracts/TestContractNoConstructor.sol\":{\"keccak256\":\"0xe44af605e0612898adfdd13cc2ae9305b370752fe9aa3f040971b3308e4482d3\",\"urls\":[\"bzzr://db9bf0acbb16ea11782567b9425aa7860b78052822fb141d3ac0f759f9558128\"]}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3fe6080604052600080fdfea165627a7a72305820d42074d3a8e25f5d226bf864a46c0a21f694bbd3fb3b94f2c215f73023fb77af0029",
+  "deployedBytecode": "0x6080604052600080fdfea165627a7a72305820d42074d3a8e25f5d226bf864a46c0a21f694bbd3fb3b94f2c215f73023fb77af0029",
+  "sourceMap": "100:38:1:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;100:38:1;;;;;;;",
+  "deployedSourceMap": "100:38:1:-;;;;;",
+  "source": "pragma solidity >=0.5.6 <0.6.0;\n\n// a contract with default constructor but no explicit constructor\ncontract TestContractNoConstructor {\n}\n\n",
+  "sourcePath": "/data/contracts/TestContractNoConstructor.sol",
+  "ast": {
+    "absolutePath": "/data/contracts/TestContractNoConstructor.sol",
+    "exportedSymbols": {
+      "TestContractNoConstructor": [
+        91
+      ]
+    },
+    "id": 92,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 90,
+        "literals": [
+          "solidity",
+          ">=",
+          "0.5",
+          ".6",
+          "<",
+          "0.6",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:31:1"
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "id": 91,
+        "linearizedBaseContracts": [
+          91
+        ],
+        "name": "TestContractNoConstructor",
+        "nodeType": "ContractDefinition",
+        "nodes": [],
+        "scope": 92,
+        "src": "100:38:1"
+      }
+    ],
+    "src": "0:140:1"
+  },
+  "legacyAST": {
+    "absolutePath": "/data/contracts/TestContractNoConstructor.sol",
+    "exportedSymbols": {
+      "TestContractNoConstructor": [
+        91
+      ]
+    },
+    "id": 92,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 90,
+        "literals": [
+          "solidity",
+          ">=",
+          "0.5",
+          ".6",
+          "<",
+          "0.6",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:31:1"
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "id": 91,
+        "linearizedBaseContracts": [
+          91
+        ],
+        "name": "TestContractNoConstructor",
+        "nodeType": "ContractDefinition",
+        "nodes": [],
+        "scope": 92,
+        "src": "100:38:1"
+      }
+    ],
+    "src": "0:140:1"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.5.8+commit.23d335f2.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.0.11",
+  "updatedAt": "2019-07-10T21:04:47.031Z",
+  "devdoc": {
+    "methods": {}
+  },
+  "userdoc": {
+    "methods": {}
+  }
+}

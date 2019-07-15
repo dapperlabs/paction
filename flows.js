@@ -77,6 +77,11 @@ const askFunctionParam = ask => {
 };
 
 const askFunctionParams = async (ask, func) => {
+  // for contract that has no constructor, the func might be empty,
+  // in which case, we want to return empty array as params
+  if (!func) {
+    return [];
+  }
   const inputs = func.inputs;
   // [string]
   const all = await sequential(askFunctionParam(ask), inputs);
@@ -94,7 +99,7 @@ exports.deployContract = async ask => {
   console.log(constructor);
   const params = await askFunctionParams(ask, constructor);
   let value = '0';
-  if (constructor.payable) {
+  if (constructor && constructor.payable) {
     value = await askUntilValid(ask, inputs.bignumber(
       'Please type the Ether value you would like to send to the contract constructor in wei:\nExample: (10000000000) for 10 gwei'
     ));
