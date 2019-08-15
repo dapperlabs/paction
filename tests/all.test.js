@@ -48,3 +48,9 @@ describe('5. queryNonce', () => {
     return assertCaseByName('queryNonce');
   });
 });
+
+describe('support comments', () => {
+  it('should ignore comments', () => {
+    return assertCaseByName('transferEther_genPayload_comments');
+  });
+});
