@@ -12,11 +12,11 @@ const untilValid = async (ask, answer, validator) => {
 };
 
 exports.askUntilValid = async (ask, inputs) => {
-  let answer = await ask(inputs.question);
+  const answer = await ask(inputs.question);
   // If the line starts with `#`, it will be treated as a comment, and
   // ignored.
   if (answer[0] === '#') {
-    answer = await ask('');
+    return untilValid(ask, '', inputs.validator);
   }
   return untilValid(ask, answer, inputs.validator);
 };

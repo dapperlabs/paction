@@ -53,4 +53,7 @@ describe('support comments', () => {
   it('should ignore comments', () => {
     return assertCaseByName('transferEther_genPayload_comments');
   });
+  it('should ignore multi line comments', () => {
+    return assertCaseByName('transferEther_genPayload_multi_comments');
+  });
 });
