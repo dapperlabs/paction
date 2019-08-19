@@ -1,7 +1,8 @@
 const signByKey = require('./signby/key');
 const writeActions = require('./actions/write');
 const readActions = require('./actions/read');
-const { makeTxBase } = require('./ethereum/transaction');
+const { makeTxBase, updateNonce } = require('./ethereum/transaction');
+const { privateKeyToAddress } = require('./ethereum/keypair');
 const Signature = require('./ethereum/signature');
 const inputs = require('./cli/inputs');
 const outputs = require('./cli/outputs');
@@ -9,8 +10,10 @@ const { askUntilValid } = require('./cli/ask');
 const hardware = require('./signby/hardware');
 const { fromSignature } = require('./jsonrpc/payload/from');
 const Payload = require('./jsonrpc/payload');
+const { sendPayload } = require('./jsonrpc/client');
 const { showAllWrites, showAllReads, showConstructor, findMethod, firstWriteName, firstReadName } = require('./cli/abi');
 const { sequential } = require('./utils/async');
+const { hex0xToHex } = require('./utils/hex');
 const FunctionParam = require('./types/param');
 
 exports.entry = async ask => {
@@ -145,7 +148,7 @@ exports.writeContract = async ask => {
     method,
     params
   );
-  return exports.chooseHowToSign(ask, rawTx);
+  await exports.chooseHowToSign(ask, rawTx);
 };
 
 exports.askContractorWriteMethodCall = async (ask, abiJSON) => {
@@ -234,7 +237,25 @@ exports.signWithPrivateKey = async (ask, rawTx) => {
   );
   // hex0x
   const signedTx = signByKey.signWithPrivateKey(rawTx, privateKey);
-  return exports.chooseHowToSendRawTransaction(ask, signedTx);
+  const finalNonce = await askNonce(ask, rawTx.nonce, privateKey);
+  console.log('nonce to use:', finalNonce);
+  const rawTxWithFinalNonce = updateNonce(rawTx, finalNonce);
+  const signedTxWithFinalNonce = signByKey.signWithPrivateKey(rawTxWithFinalNonce, privateKey);
+  await exports.chooseHowToSendRawTransaction(ask, signedTxWithFinalNonce);
+};
+
+const askNonce = async (ask, nonce, privateKey) => {
+  const allowQueryNonce = await askUntilValid(ask,
+    inputs.bool("Allow txgun to query the nonce for you? y/n"));
+  if (allowQueryNonce) {
+    // hex0x
+    const address = privateKeyToAddress(privateKey);
+    console.log('Querying nonce for address:', address);
+    const payload = Payload.getTransactionCount(address);
+    const hex0xNonce = await sendPayload(payload);
+    return hex0xToHex(hex0xNonce);
+  }
+  return numberToHex(nonce);
 };
 
 exports.signWithHardwareWallet = async (ask, rawTx) => {
@@ -253,7 +274,15 @@ exports.signWithHardwareWallet = async (ask, rawTx) => {
 exports.chooseHowToSendRawTransaction = async (ask, signedTx) => {
   // payload
   const payload = Payload.sendRawTransaction(signedTx);
-  outputs.answer(payload);
+  const willSend = await askUntilValid(ask, inputs.bool(
+    "Would you like txgun to send the signed transaction for you? y/n"));
+  if (willSend) {
+    console.log('sending payload', payload);
+    const result = await sendPayload(payload);
+    outputs.answer({ result });
+  } else {
+    outputs.answer(payload);
+  }
   return payload;
 };
 

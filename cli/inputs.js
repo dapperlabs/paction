@@ -73,3 +73,13 @@ exports.bignumber = (question) => {
     },
   };
 };
+
+exports.bool = (question) => {
+  return {
+    question: question,
+    validator: (answer) => {
+      const valid = answer === 'y' || answer === 'n';
+      return [valid, answer === 'y'];
+    },
+  };
+};
