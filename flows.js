@@ -278,7 +278,7 @@ exports.chooseHowToSendRawTransaction = async (ask, signedTx) => {
 
 exports.chooseHowToSendPayload = async(ask, payload) => {
   const willSend = await askUntilValid(ask, inputs.bool(
-    "Would you like txgun to send the signed transaction for you? y/n"));
+    "Would you like txgun to send the payload for you? y/n"));
   if (willSend) {
     console.log('sending payload', payload);
     const result = await sendPayload(payload);
