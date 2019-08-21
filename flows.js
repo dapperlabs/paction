@@ -15,6 +15,7 @@ const { showAllWrites, showAllReads, showConstructor, findMethod, firstWriteName
 const { sequential } = require('./utils/async');
 const { hex0xToHex, numberToHex } = require('./utils/hex');
 const FunctionParam = require('./types/param');
+const ethabi = require('web3-eth-abi');
 
 exports.entry = async ask => {
   const action = await askUntilValid(ask,
@@ -303,8 +304,8 @@ exports.readContract = async (ask) => {
   const result = await exports.chooseHowToCall(ask, query);
   if (result) {
     const { outputs } = findMethod(abiJSON, method);
-    console.log({ outputs, result });
-    // console.log('Result', abi.smartDecode(outputs.map((p) => p.type), Buffer.from(result, 'hex')));
+    console.log({ outputs });
+    console.log('Result', ethabi.decodeParameters(outputs, result));
   }
 };
 
