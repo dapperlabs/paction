@@ -13,7 +13,7 @@ const Payload = require('./jsonrpc/payload');
 const { sendPayload } = require('./jsonrpc/client');
 const { showAllWrites, showAllReads, showConstructor, findMethod, firstWriteName, firstReadName } = require('./cli/abi');
 const { sequential } = require('./utils/async');
-const { hex0xToHex } = require('./utils/hex');
+const { hex0xToHex, numberToHex } = require('./utils/hex');
 const FunctionParam = require('./types/param');
 
 exports.entry = async ask => {
@@ -158,8 +158,7 @@ exports.askContractorWriteMethodCall = async (ask, abiJSON) => {
   const methodName = await ask(
     `Please type the method name:\nExample: (${example})`
   );
-  const method2 = findMethod(abiJSON, methodName);
-  const method = method2;
+  const method = findMethod(abiJSON, methodName);
   if (!method) {
     return Promise.reject(new Error(`unknown method name: ${method}`));
   }
@@ -178,8 +177,7 @@ exports.askContractorReadMethodCall = async (ask, abiJSON) => {
   const methodName = await ask(
     `Please type the method name:\nExample: (${example})`
   );
-  const method2 = findMethod(abiJSON, methodName);
-  const method = method2;
+  const method = findMethod(abiJSON, methodName);
   if (!method) {
     return Promise.reject(new Error(`unknown method name: ${method}`));
   }
@@ -274,16 +272,20 @@ exports.signWithHardwareWallet = async (ask, rawTx) => {
 exports.chooseHowToSendRawTransaction = async (ask, signedTx) => {
   // payload
   const payload = Payload.sendRawTransaction(signedTx);
+  return await exports.chooseHowToSendPayload(ask, payload);
+};
+
+exports.chooseHowToSendPayload = async(ask, payload) => {
   const willSend = await askUntilValid(ask, inputs.bool(
     "Would you like txgun to send the signed transaction for you? y/n"));
   if (willSend) {
     console.log('sending payload', payload);
     const result = await sendPayload(payload);
     outputs.answer({ result });
+    return result;
   } else {
     outputs.answer(payload);
   }
-  return payload;
 };
 
 exports.readContract = async (ask) => {
@@ -298,7 +300,12 @@ exports.readContract = async (ask) => {
     'contractAddress (0x57831a0c76ba6b4fdcbadd6cb48cb26e8fc15e93): '
   );
   const query = readActions.readContract(abiJSON, contractAddress, method, params);
-  return exports.chooseHowToCall(ask, query);
+  const result = await exports.chooseHowToCall(ask, query);
+  if (result) {
+    const { outputs } = findMethod(abiJSON, method);
+    console.log({ outputs, result });
+    // console.log('Result', abi.smartDecode(outputs.map((p) => p.type), Buffer.from(result, 'hex')));
+  }
 };
 
 exports.chooseHowToCall = async (ask, query) => {
@@ -306,8 +313,7 @@ exports.chooseHowToCall = async (ask, query) => {
   blockNumber = blockNumber === '' ? null : parseInt(blockNumber, 10);
   blockNumber = isNaN(blockNumber) ? null : blockNumber;
   const payload = Payload.callWithQuery(query, blockNumber);
-  outputs.answer(payload);
-  return payload;
+  return await exports.chooseHowToSendPayload(ask, payload);
 };
 
 exports.queryNonce = async (ask) => {
