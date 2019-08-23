@@ -7,11 +7,11 @@ const formatArgs = (args) => {
 };
 
 const isWrite = (m) => {
-  return m.type === 'function' && m.stateMutability !== 'view';
+  return m.type === 'function' && (m.stateMutability !== 'view' && m.stateMutability !== 'pure');
 };
 
 const isRead = (m) => {
-  return m.type === 'function' && m.stateMutability === 'view';
+  return m.type === 'function' && (m.stateMutability === 'view' || m.stateMutability === 'pure');
 };
 
 exports.showAll = (abiJSON, filter) => {
