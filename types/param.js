@@ -25,6 +25,8 @@ exports.toValidator = (param) => {
       return [(answer) => answer === 'true' || answer === 'false', answer === 'true'];
     } else if (exports.isArray(param)) {
       return [true, answer.split(',')];
+    } else if (type.substr(0, 5) === 'bytes') {
+      return [answer.substr(0, 2) === '0x', answer];
     }
     return [true, answer];
   };
