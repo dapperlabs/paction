@@ -269,10 +269,6 @@ exports.chooseHowToSendRawTransaction = async (ask, signedTx) => {
   return payload;
 };
 
-const showEtherscan = (txHash) => {
-  return `https://rinkeby.etherscan.io/tx/${txHash}`;
-};
-
 exports.readContract = async (ask) => {
   const abiPath = await ask(
     'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
