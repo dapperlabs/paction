@@ -1,4 +1,5 @@
 const path = require('path');
+const { isHex0x } = require('../utils/hex');
 const { isValidAddress } = require('ethereumjs-util');
 
 // string -> [string] -> string
@@ -69,6 +70,26 @@ exports.bignumber = (question) => {
     question: question,
     validator: (answer) => {
       const valid = /^\d+$/.test(answer);
+      return [valid, answer];
+    },
+  };
+};
+
+exports.bool = (question) => {
+  return {
+    question: question,
+    validator: (answer) => {
+      const valid = answer === 'y' || answer === 'n';
+      return [valid, answer === 'y'];
+    },
+  };
+};
+
+exports.hex0x = (question) => {
+  return {
+    question: question,
+    validator: (answer) => {
+      const valid = isHex0x(answer);
       return [valid, answer];
     },
   };
