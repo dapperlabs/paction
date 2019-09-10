@@ -38,3 +38,20 @@ exports.bufferToHex0x = (buf) => exports.hexToHex0x(exports.bufferToHex(buf));
 // '204' -> <Buffer cc>
 exports.bnStringToBuffer = (str) =>
   exports.hexToBuffer(exports.bnStringToHex(str));
+
+// '' -> true
+// '204' -> false
+// '2045' -> true
+// '20F5' -> true
+// '20f5' -> true
+// 'xxxx' -> false
+exports.isHex = (str) => {
+  return str.length % 2 === 0 && /^[0-9A-Fa-f]*$/.test(str);
+}
+
+// '0x2045' -> true
+// '0xxxxx' -> false
+// '2045' -> false
+exports.isHex0x = (str) => {
+  return str.substr(0, 2) === '0x' && exports.isHex(str.substr(2));
+};

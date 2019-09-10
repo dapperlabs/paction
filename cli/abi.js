@@ -1,3 +1,5 @@
+const ethabi = require('web3-eth-abi');
+
 // [arg] -> string
 const formatArgs = (args) => {
   return args.map((i) => {
@@ -39,9 +41,21 @@ exports.showConstructor = (abiJSON) => {
 
 // abiJSON -> string -> method?
 exports.findMethod = (abiJSON, methodName) => {
-  return abiJSON.abi.filter((method) => {
+  return abiJSON.abi.find((method) => {
     return method.name === methodName;
-  })[0];
+  });
+};
+
+// abiJSON -> hex0x -> method?
+exports.findMethodBySignature = (abiJSON, methodSignature) => {
+  return abiJSON.abi.find((method) => {
+    try {
+      return method.type !== 'fallback' && ethabi.encodeFunctionSignature(method) === methodSignature;
+    } catch(e) {
+      console.log({ e, method });
+      return false;
+    }
+  });
 };
 
 // Note: assuming there is at least one write method
@@ -55,3 +69,5 @@ exports.firstWriteName = (abiJSON) => {
 exports.firstReadName = (abiJSON) => {
   return abiJSON.abi.find(isRead).name;
 };
+
+exports.decodeParameters = ethabi.decodeParameters.bind(ethabi);
