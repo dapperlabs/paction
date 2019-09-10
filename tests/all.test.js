@@ -49,6 +49,12 @@ describe('5. queryNonce', () => {
   });
 });
 
+describe('6. readTransactionData', () => {
+  it('should read transaction data', () => {
+    return assertCaseByName('readTransactionData');
+  });
+});
+
 describe('support comments', () => {
   it('should ignore comments', () => {
     return assertCaseByName('transferEther_genPayload_comments');

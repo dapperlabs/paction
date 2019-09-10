@@ -9,7 +9,16 @@ const { askUntilValid } = require('./cli/ask');
 const hardware = require('./signby/hardware');
 const { fromSignature } = require('./jsonrpc/payload/from');
 const Payload = require('./jsonrpc/payload');
-const { showAllWrites, showAllReads, showConstructor, findMethod, firstWriteName, firstReadName } = require('./cli/abi');
+const {
+  showAllWrites,
+  showAllReads,
+  showConstructor,
+  findMethod,
+  findMethodBySignature,
+  firstWriteName,
+  firstReadName,
+  decodeParameters
+} = require('./cli/abi');
 const { sequential } = require('./utils/async');
 const FunctionParam = require('./types/param');
 
@@ -21,6 +30,7 @@ exports.entry = async ask => {
       'Make a method call to a deployed contract',
       'Read a contract',
       'Query the current nonce for an account',
+      'Decode transaction data',
     ])
   );
   if (false) {
@@ -34,6 +44,8 @@ exports.entry = async ask => {
     return exports.readContract(ask);
   } else if (action === 5) {
     return exports.queryNonce(ask);
+  } else if (action === 6) {
+    return exports.decodeTransactionData(ask);
   }
 };
 
@@ -290,6 +302,30 @@ exports.queryNonce = async (ask) => {
   const payload = Payload.getTransactionCount(address);
   outputs.answer(payload);
   return payload;
+};
+
+exports.decodeTransactionData = async (ask) => {
+  const abiPath = await ask(
+    'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
+  );
+  // TODO: it's vulnerable to load a json file with any path, better to add some check
+  // but for simplicity, I'm allowing it for now.
+  const abiJSON = require(abiPath);
+  // hex0x
+  const txData = await askUntilValid(ask, inputs.hex0x(
+    'Please type the transaction data i.e. (0xfb3790c50000000000000000000000000000000000000000000000000000000000001783'));
+  // The first 4 bytes are function signature
+  const funcSignature = txData.substr(0, 2 + 4 * 2);
+  const funcParams = txData.substr(2 + 4 * 2);
+  const method = findMethodBySignature(abiJSON, funcSignature);
+  if (!method) {
+    throw new Error('Method not found by the signature: ' + funcSignature);
+  }
+  console.log(method);
+  const decoded = decodeParameters(method.inputs, funcParams);
+  const obj = JSON.stringify(decoded);
+  outputs.answer(obj);
+  return obj;
 };
 
 exports.showTransactionData = async (ask, rawTx) => {
