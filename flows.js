@@ -108,8 +108,6 @@ exports.deployContract = async ask => {
   const abiJSON = await askUntilValid(ask, inputs.abiPath(
     'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
   ));
-  // TODO: it's vulnerable to load a json file with any path, better to add some check
-  // but for simplicity, I'm allowing it for now.
   const constructor = showConstructor(abiJSON);
   console.log('Parsed contract constructor:');
   console.log(constructor);
@@ -161,7 +159,7 @@ exports.writeContract = async ask => {
     method,
     params
   );
-  await exports.chooseHowToSign(ask, rawTx);
+  return await exports.chooseHowToSign(ask, rawTx);
 };
 
 exports.askContractorWriteMethodCall = async (ask, abiJSON) => {
@@ -252,7 +250,7 @@ exports.signWithPrivateKey = async (ask, rawTx) => {
   console.log('nonce to use:', finalNonce);
   const rawTxWithFinalNonce = updateNonce(rawTx, finalNonce);
   const signedTxWithFinalNonce = signByKey.signWithPrivateKey(rawTxWithFinalNonce, privateKey);
-  await exports.chooseHowToSendRawTransaction(ask, signedTxWithFinalNonce);
+  return await exports.chooseHowToSendRawTransaction(ask, signedTxWithFinalNonce);
 };
 
 const askNonce = async (ask, nonce, privateKey) => {
@@ -285,40 +283,40 @@ exports.signWithHardwareWallet = async (ask, rawTx) => {
 exports.chooseHowToSendRawTransaction = async (ask, signedTx) => {
   // payload
   const payload = Payload.sendRawTransaction(signedTx);
-  return await exports.chooseHowToSendPayload(ask, payload);
+  await exports.chooseHowToSendPayload(ask, payload);
+  return payload;
 };
 
 exports.chooseHowToSendPayload = async(ask, payload) => {
   const willSend = await askUntilValid(ask, inputs.bool(
-    "Would you like txgun to send the payload for you? y/n"));
+    'Would you like txgun to send the payload for you? y/n'));
   if (willSend) {
     console.log('sending payload', payload);
     const result = await sendPayload(payload);
     outputs.answer({ result });
-    return result;
+    return { payload, result };
   } else {
     outputs.answer(payload);
+    return { payload };
   }
 };
 
 exports.readContract = async (ask) => {
-  const abiPath = await ask(
+  const abiJSON = await askUntilValid(ask, inputs.abiPath(
     'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
-  );
-  // TODO: it's vulnerable to load a json file with any path, better to add some check
-  // but for simplicity, I'm allowing it for now.
-  const abiJSON = require(abiPath);
+  ));
   const { method, params } = await exports.askContractorReadMethodCall(ask, abiJSON);
   const contractAddress = await ask(
     'contractAddress (0x57831a0c76ba6b4fdcbadd6cb48cb26e8fc15e93): '
   );
   const query = readActions.readContract(abiJSON, contractAddress, method, params);
-  const result = await exports.chooseHowToCall(ask, query);
+  const { result, payload } = await exports.chooseHowToCall(ask, query);
   if (result) {
     const { outputs } = findMethod(abiJSON, method);
     console.log({ outputs });
     console.log('Result', ethabi.decodeParameters(outputs, result));
   }
+  return payload;
 };
 
 exports.chooseHowToCall = async (ask, query) => {
@@ -341,12 +339,9 @@ exports.queryNonce = async (ask) => {
 };
 
 exports.decodeTransactionData = async (ask) => {
-  const abiPath = await ask(
+  const abiJSON = await askUntilValid(ask, inputs.abiPath(
     'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
-  );
-  // TODO: it's vulnerable to load a json file with any path, better to add some check
-  // but for simplicity, I'm allowing it for now.
-  const abiJSON = require(abiPath);
+  ));
   // hex0x
   const txData = await askUntilValid(ask, inputs.hex0x(
     'Please type the transaction data i.e. (0xfb3790c50000000000000000000000000000000000000000000000000000000000001783'));

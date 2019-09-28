@@ -43,6 +43,8 @@ exports.nonNegativeNumber = (question) => {
 
 exports.nonce = exports.nonNegativeNumber;
 
+  // TODO: it's vulnerable to load a json file with any path, better to add some check
+  // but for simplicity, I'm allowing it for now.
 exports.abiPath = (question) => {
   return {
     question: question,
