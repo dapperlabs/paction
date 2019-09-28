@@ -5,4 +5,4 @@ install:
 	npm install
 
 test:
-	npm test
+	source .env.example && npm test
