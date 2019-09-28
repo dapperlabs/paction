@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { isHex0x } = require('../utils/hex');
+const { findMethod } = require('./abi');
 const { isValidAddress } = require('ethereumjs-util');
 
 // string -> [string] -> string
@@ -99,6 +100,16 @@ exports.hex0x = (question) => {
     validator: (answer) => {
       const valid = isHex0x(answer);
       return [valid, answer];
+    },
+  };
+};
+
+exports.methodName = (abiJSON, question) => {
+  return {
+    question,
+    validator: (methodName) => {
+      const method = findMethod(abiJSON, methodName);
+      return [!!method, method];
     },
   };
 };

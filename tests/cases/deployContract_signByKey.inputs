@@ -1,6 +1,6 @@
 # Deploy a contract
 2
-# The path to the abi json file, i.e. (./abis/Offers.json):
+# The path to the abi json file:
 ./tests/abis/TestContract.json
 # publicBool_ (bool)
 true

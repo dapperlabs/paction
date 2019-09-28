@@ -1,11 +1,21 @@
 3
-./abis/Offers.json
-setMinimumTotalValue
-104500000000000000
+./tests/abis/TestContract.json
+# method name
+createToken
+# tokenId_ (uint256)
+30
+# owner_ (address)
 0xc34518fd04ff34a566430ebe9ca82161fc8b767d
-37
+# metadata_ (bytes32)
+0x02153c5dd85440f4e0c084bc6f178ed2f3fdd6ca2c4c5ac4a98ab7f68f140479
+# contractAddress
+0x57831a0c76ba6b4fdcbadd6cb48cb26e8fc15e93
+# nonce
+0
+# gas price
 10000000000
-30000
+# gas limit
+10000
 4
 0x5F8BEEB98505C6156DA29E8349AA0D37B272834726C29F5B43600331B1F4C40F
 n

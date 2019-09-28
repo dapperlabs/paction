@@ -106,7 +106,7 @@ const askFunctionParams = async (ask, func) => {
 
 exports.deployContract = async ask => {
   const abiJSON = await askUntilValid(ask, inputs.abiPath(
-    'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
+    'Please type the path to the abi json file, i.e. (./tests/abis/TestContract.json):'
   ));
   const constructor = showConstructor(abiJSON);
   console.log('Parsed contract constructor:');
@@ -132,7 +132,7 @@ exports.deployContract = async ask => {
 
 exports.writeContract = async ask => {
   const abiJSON = await askUntilValid(ask, inputs.abiPath(
-    'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
+    'Please type the path to the abi json file, i.e. (./tests/abis/TestContract.json):'
   ));
   const { method, params, payable } = await exports.askContractorWriteMethodCall(ask, abiJSON);
   const contractAddress = await askUntilValid(ask, inputs.address(
@@ -166,10 +166,9 @@ exports.askContractorWriteMethodCall = async (ask, abiJSON) => {
   const allMethods = showAllWrites(abiJSON).join('\n');
   console.log(allMethods);
   const example = firstWriteName(abiJSON);
-  const methodName = await ask(
+  const method = await askUntilValid(ask, inputs.methodName(abiJSON,
     `Please type the method name:\nExample: (${example})`
-  );
-  const method = findMethod(abiJSON, methodName);
+  ));
   if (!method) {
     return Promise.reject(new Error(`unknown method name: ${method}`));
   }
@@ -185,10 +184,9 @@ exports.askContractorReadMethodCall = async (ask, abiJSON) => {
   const allMethods = showAllReads(abiJSON).join('\n');
   console.log(allMethods);
   const example = firstReadName(abiJSON);
-  const methodName = await ask(
+  const method = await askUntilValid(ask, inputs.methodName(abiJSON,
     `Please type the method name:\nExample: (${example})`
-  );
-  const method = findMethod(abiJSON, methodName);
+  ));
   if (!method) {
     return Promise.reject(new Error(`unknown method name: ${method}`));
   }
@@ -217,7 +215,6 @@ exports.chooseHowToSign = async (ask, rawTx) => {
     return exports.signByGeth(ask, rawTx);
   } else if (choice === 3) {
     console.log(rawTx);
-    // return exports.signByDapperService(ask, rawTx);
   } else if (choice === 4) {
     return exports.signWithPrivateKey(ask, rawTx);
   } else if (choice === 5) {
@@ -303,7 +300,7 @@ exports.chooseHowToSendPayload = async(ask, payload) => {
 
 exports.readContract = async (ask) => {
   const abiJSON = await askUntilValid(ask, inputs.abiPath(
-    'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
+    'Please type the path to the abi json file, i.e. (./tests/abis/TestContract.json):'
   ));
   const { method, params } = await exports.askContractorReadMethodCall(ask, abiJSON);
   const contractAddress = await ask(
@@ -340,7 +337,7 @@ exports.queryNonce = async (ask) => {
 
 exports.decodeTransactionData = async (ask) => {
   const abiJSON = await askUntilValid(ask, inputs.abiPath(
-    'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
+    'Please type the path to the abi json file, i.e. (./tests/abis/TestContract.json):'
   ));
   // hex0x
   const txData = await askUntilValid(ask, inputs.hex0x(
