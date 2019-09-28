@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const { isHex0x } = require('../utils/hex');
 const { isValidAddress } = require('ethereumjs-util');
@@ -43,15 +44,20 @@ exports.nonNegativeNumber = (question) => {
 
 exports.nonce = exports.nonNegativeNumber;
 
-  // TODO: it's vulnerable to load a json file with any path, better to add some check
-  // but for simplicity, I'm allowing it for now.
 exports.abiPath = (question) => {
   return {
     question: question,
     validator: (answer) => {
-      // relative path to cwd
-      const json = require(path.resolve(answer));
-      return [true, json];
+      // relative path to pwd
+      const abiFilePath = path.resolve(answer);
+      const abiFile = fs.readFileSync(abiFilePath, 'utf8');
+      try {
+        const json = JSON.parse(abiFile);
+        return [true, json];
+      } catch (e) {
+        e.message = `Failed to parse json at FilePath: ${abiFilePath}. Because: ${e.message}`;
+        throw e;
+      }
     },
   };
 };
