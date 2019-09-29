@@ -48,3 +48,14 @@ txgun requires an environment variable: `WEB3_URL`, which specifies the network.
 
 ## Examples
 See [here](./examples/README.md)
+
+## Contributions
+We welcome pull requests. To get started, just fork this repo, clone it locally, and run:
+
+```
+make install
+source .env.example
+make test
+```
+
+Please make pull requests against the `develop` branch.
