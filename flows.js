@@ -78,7 +78,7 @@ exports.askTxBase = async (ask, needAskLimit) => {
   let gasLimit = null;
   if (needAskLimit) {
     gasLimit = await askUntilValid(ask,
-      inputs.bignumber('Please type the gas limit in wei:\nExample: (10) for 10 gas')
+      inputs.bignumber('Please type the gas limit in wei:\nExample: (10000) for 10000 gas')
     );
   }
   const txBase = makeTxBase(nonce, gasPrice, gasLimit, value);
@@ -123,7 +123,7 @@ exports.deployContract = async ask => {
     'Please type the gas price in wei:\nExample: (10000000000) for 10 gwei'
   ));
   const gasLimit = await askUntilValid(ask, inputs.bignumber(
-    'Please type the gas limit in wei:\nExample: (10) for 10 gas'
+    'Please type the gas limit in wei:\nExample: (10000) for 10000 gas'
   ));
   const txBase = makeTxBase(nonce, gasPrice, gasLimit, value);
   const rawTx = writeActions.deployContract(abiJSON, txBase, params);
@@ -149,7 +149,7 @@ exports.writeContract = async ask => {
     'Please type the gas price in wei:\nExample: (10000000000) for 10 gwei'
   ));
   const gasLimit = await askUntilValid(ask, inputs.bignumber(
-    'Please type the gas limit in wei:\nExample: (10) for 10 gas'
+    'Please type the gas limit in wei:\nExample: (10000) for 10000 gas'
   ));
   const txBase = makeTxBase(nonce, gasPrice, gasLimit, value);
   const rawTx = writeActions.writeContract(
