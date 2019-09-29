@@ -39,17 +39,17 @@ exports.entry = async ask => {
   );
   if (false) {
   } else if (action === 1) {
-    return exports.transferEther(ask);
+    return await exports.transferEther(ask);
   } else if (action === 2) {
-    return exports.deployContract(ask);
+    return await exports.deployContract(ask);
   } else if (action === 3) {
-    return exports.writeContract(ask);
+    return await exports.writeContract(ask);
   } else if (action === 4) {
-    return exports.readContract(ask);
+    return await exports.readContract(ask);
   } else if (action === 5) {
-    return exports.queryNonce(ask);
+    return await exports.queryNonce(ask);
   } else if (action === 6) {
-    return exports.decodeTransactionData(ask);
+    return await exports.decodeTransactionData(ask);
   }
 };
 
@@ -61,7 +61,7 @@ exports.transferEther = async ask => {
   );
   const txBase = await exports.askTxBase(ask, false);
   const rawTx = writeActions.transferEther(txBase.nonce, txBase.value, txBase.gasPrice, to);
-  return exports.chooseHowToSign(ask, rawTx);
+  return await exports.chooseHowToSign(ask, rawTx);
 };
 
 exports.askTxBase = async (ask, needAskLimit) => {
@@ -127,7 +127,7 @@ exports.deployContract = async ask => {
   ));
   const txBase = makeTxBase(nonce, gasPrice, gasLimit, value);
   const rawTx = writeActions.deployContract(abiJSON, txBase, params);
-  return exports.chooseHowToSign(ask, rawTx);
+  return await exports.chooseHowToSign(ask, rawTx);
 };
 
 exports.writeContract = async ask => {
@@ -210,15 +210,15 @@ exports.chooseHowToSign = async (ask, rawTx) => {
 
   if (false) {
   } else if (choice === 1) {
-    return exports.signByGethAndSend(ask, rawTx);
+    return await exports.signByGethAndSend(ask, rawTx);
   } else if (choice === 2) {
-    return exports.signByGeth(ask, rawTx);
+    return await exports.signByGeth(ask, rawTx);
   } else if (choice === 3) {
     console.log(rawTx);
   } else if (choice === 4) {
-    return exports.signWithPrivateKey(ask, rawTx);
+    return await exports.signWithPrivateKey(ask, rawTx);
   } else if (choice === 5) {
-    return exports.showTransactionData(ask, rawTx);
+    return await exports.showTransactionData(ask, rawTx);
   }
 };
 
@@ -234,7 +234,7 @@ exports.signByGeth = async (ask, rawTx) => {
   const payloadToSign = Payload.signTransaction(from, rawTx);
   outputs.answer(payloadToSign);
   const signedTx = await ask('Please provide the signed tx:');
-  return exports.chooseHowToSendRawTransaction(ask, signedTx);
+  return await exports.chooseHowToSendRawTransaction(ask, signedTx);
 };
 
 exports.signWithPrivateKey = async (ask, rawTx) => {
