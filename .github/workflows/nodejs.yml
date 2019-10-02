@@ -23,3 +23,4 @@ jobs:
         make test
       env:
         CI: true
+        WEB3_URL: https://api.infura.io/v1/jsonrpc/rinkeby

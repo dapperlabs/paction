@@ -1,5 +1,6 @@
 4
-./abis/Offers.json
-ceoAddress
+./tests/abis/TestContract.json
+publicPayableAddress
 0x57831a0c76ba6b4fdcbadd6cb48cb26e8fc15e93
-
+n
+n

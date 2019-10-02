@@ -1,14 +1,26 @@
+# Deploy a contract
 2
-./abis/Offers.json
-0x5328276603d169165d0f71ca67ccc89c45027df3
-0xb8a3FD5785D700E485EC68A13EEC1E9670889cB5
-86400
-104500000000000000
-1000
-4000000000000000
-450
-34
+# The path to the abi json file:
+./tests/abis/TestContract.json
+# publicBool_ (bool)
+true
+# publicBytes32_ (bytes32)
+0x02153c5dd85440f4e0c084bc6f178ed2f3fdd6ca2c4c5ac4a98ab7f68f140479
+# publicAddress_ (address)
+0x386Ed6Be18665d96285ab02D252d34Fbb677Fc3D
+# publicPayableAddress_ (address)
+0x386Ed6Be18665d96285ab02D252d34Fbb677Fc3D
+# publicUint256Array_ (uint256[])" (please use "," to separate array items)
+1,2,3
+# publicBytes32Array_ (bytes32[])" (please use "," to separate array items)
+0x02153c5dd85440f4e0c084bc6f178ed2f3fdd6ca2c4c5ac4a98ab7f68f140479,0x02153c5dd85440f4e0c084bc6f178ed2f3fdd6ca2c4c5ac4a98ab7f68f140479
+# nonce
+0
+# gas price
 10000000000
-3000000
+# gas limit
+10000
 4
-0x5F8BEEB98505C6156DA29E8349AA0D37B272834726C29F5B43600331B1F4C40F
+0xB99DEE022DEC70879FB1F936A2B726DD0A57DFA70B1525848A2BF91EC88E9EA8
+n
+n

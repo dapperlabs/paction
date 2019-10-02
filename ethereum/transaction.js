@@ -65,3 +65,8 @@ exports.forSigning = (rawTx) => {
   const rawTxHash = bufferToHex0x(txHash);
   return rawTxHash;
 };
+
+// RawTx -> number -> RawTx
+exports.updateNonce = (rawTx, nonce) => {
+  return Object.assign({}, rawTx, { nonce });
+};

@@ -1,5 +1,7 @@
+const fs = require('fs');
 const path = require('path');
 const { isHex0x } = require('../utils/hex');
+const { findMethod } = require('./abi');
 const { isValidAddress } = require('ethereumjs-util');
 
 // string -> [string] -> string
@@ -47,9 +49,16 @@ exports.abiPath = (question) => {
   return {
     question: question,
     validator: (answer) => {
-      // relative path to cwd
-      const json = require(path.resolve(answer));
-      return [true, json];
+      // relative path to pwd
+      const abiFilePath = path.resolve(answer);
+      const abiFile = fs.readFileSync(abiFilePath, 'utf8');
+      try {
+        const json = JSON.parse(abiFile);
+        return [true, json];
+      } catch (e) {
+        e.message = `Failed to parse json at FilePath: ${abiFilePath}. Because: ${e.message}`;
+        throw e;
+      }
     },
   };
 };
@@ -91,6 +100,16 @@ exports.hex0x = (question) => {
     validator: (answer) => {
       const valid = isHex0x(answer);
       return [valid, answer];
+    },
+  };
+};
+
+exports.methodName = (abiJSON, question) => {
+  return {
+    question,
+    validator: (methodName) => {
+      const method = findMethod(abiJSON, methodName);
+      return [!!method, method];
     },
   };
 };

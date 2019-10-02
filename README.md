@@ -1,101 +1,61 @@
 ## What is txgun
-txgun is a command line to interact with smart contract.
+txgun is a command line tool to interact with smart contract for Ethereum.
 
-## Problems to solve
-1. Truffle is currently the only method we are using to deploy smart contracts. Truffle will deploy a Migration contract first before deploying yours in order to keep track of changes made to your contract. This stateful action introduces extra complexity to the deployment, and isn't reliable in practice.
-2. Transaction Signing and Sending are highly coupled. When making a tx to write to a contract, if the private key is loaded on a geth node which is behind, then we can't use the `sendTransaction` json rpc call to send the transaction.
-3. In order to interact with a smart contract, we always have to write a script to make transaction. It's time consuming to write scripts as we have to lookup all kinds of api documents.
+You can use txgun to deploy a smart contract, write data to a deployed contract, or read data from a deployed contract without writing a script.
+
+## Install
+### 1. From source
+```
+git clone git@github.com:dapperlabs/txgun.git
+cd txgun
+npm start
+```
+
+### 2. Install globally (not available, until the package is published on npm)
+```
+npm install -g txgun
+```
 
 ## Features
-1. Support making transaction to transfer ether, deploy a smart contract, write to a deployed contract
-2. Support both mainnet and testnet
-3. Support different signing methods: sign by provided private key, sign by geth node, sign by hardware wallet, sign by metamask
-4. Support making json rpc querying to read a contract
-6. Support reading inputs from piping
-7. Support copy pasting inputs
-8. No need to write script, making a transaction by answering questions.
-9. Using colors to distinguish question/answer
+1. Interactive tool
+No need to remember any syntax of any config file, because there is no config file at all. txgun gets the config and your choices by interactively asking you questions.
 
-## Why javascript
-So that you can use the core in frontend, and build a web UI.
+2. Support automation
+You can automate the process by saving your commands into a file, and pipe the file content to txgun to execute.
 
-## Dependency
-txgun is very lightweight, only depends on 3 official ethereum libs.
+3. Support contract deployment, read and write to a contract.
+txgun uses standard JSON RPC calls for the above actions.
+
+4. Offline mode
+Since txgun is based on JSON PRC calls, it have the options for you to let it send the JSON RPC HTTP payload to a Ethereum Node, or print the payload and send it anytime by your own.
+
+5. Support different signing methods for signing transactions
+txgun allows you to sign a transaction by your own private key or by sending to a Ethereum node that has your private key. Or you can get the transaction data and sign externally using your own wallet.
+
+6. Support different network
+txgun supports mainnet and testnet (Rinkeby).
+
+7. Dependencies
+txgun tries to be as lightweight as possible, it only depends on 4 official ethereum javascript libraries (ethereumjs-tx, ethereumjs-util, web3, web3-eth-abi) and 1 popular http client library (axios).
 
 ## How to run
 ```
-yarn
-node main.js
+export WEB3_URL=https://api.infura.io/v1/jsonrpc/rinkeby
+txgun
 ```
+
+txgun requires an environment variable: `WEB3_URL`, which specifies the network. In the above example, the `WEB3_URL` is pointing to a Rinkeby node hosted by infura, so txgun needs to send transactions, it will send them to Rinkeby.
 
 ## Examples
-### Write to a smart contract deployed on rinkeby using provided private key
-<img width="832" alt="making tx" src="https://user-images.githubusercontent.com/811374/50713900-80ad7400-102b-11e9-974f-eecc14545a97.png">
-<img width="833" alt="signing" src="https://user-images.githubusercontent.com/811374/50713910-8905af00-102b-11e9-9384-2059adc68314.png">
-<img width="833" alt="send to infura rinkeby" src="https://user-images.githubusercontent.com/811374/50713925-9ae75200-102b-11e9-8ec8-66f42a35644e.png">
+See [here](./examples/README.md)
 
-### Deploy a smart contract to rinkeby with the account loaded on a geth node, but send the signed tx to infura rinkeby
-<img width="833" alt="n1" src="https://user-images.githubusercontent.com/811374/50714960-c79d6880-102f-11e9-944a-fb32afee4671.png">
-<img width="1272" alt="n2" src="https://user-images.githubusercontent.com/811374/50714961-c79d6880-102f-11e9-904a-9ed5ef56c06a.png">
-<img width="833" alt="n3" src="https://user-images.githubusercontent.com/811374/50714962-c79d6880-102f-11e9-9f81-7b39ac978354.png">
-<img width="833" alt="n4" src="https://user-images.githubusercontent.com/811374/50714963-c835ff00-102f-11e9-9c2a-e5b920d7c516.png">
-<img width="1278" alt="n5" src="https://user-images.githubusercontent.com/811374/50714964-c835ff00-102f-11e9-9c1a-d74c02191ef3.png">
+## Contributions
+We welcome pull requests. To get started, just fork this repo, clone it locally, and run:
 
-### Read inputs from a file to transfer ether
-txgun can read inputs from standard inputs, you can save your types by saving your inputs in a file and pipe it to txgun to execute.
-You can also copy paste the multi-line inputs.
-<img width="835" alt="transfer ether" src="https://user-images.githubusercontent.com/811374/50715069-409cc000-1030-11e9-9b73-ee4783e52353.png">
-
-## How to programmatically use it?
-
-For example, if you want to programmatically making multiple txs to write to a contract. You can write a script using txgun.
-
-```js
-const { writeContract } = require('./flows');
-const axios = require('axios');
-const inputs = [
-  [
-    './abis/Offers.json',
-    'setMinimumTotalValue',
-    '104500000000000000',
-    '0xc34518fd04ff34a566430ebe9ca82161fc8b767d',
-    '37',
-    '10000000000',
-    '30000',
-    '4',
-    '0xXXXXXXXXXXXXXXX_YOUR_PRIVATE_KEY_HERE',
-  ],
-  [
-    './abis/Offers.json',
-    'setOfferCut',
-    '900',
-    '0xc34518fd04ff34a566430ebe9ca82161fc8b767d',
-    '38',
-    '10000000000',
-    '30000',
-    '4',
-    '0xXXXXXXXXXXXXXXX_YOUR_PRIVATE_KEY_HERE',
-  ],
-];
-
-const sendJSONRPC = async (payload) => {
-  return axios.post('https://rinkeby.infura.io/', payload);
-};
-
-const sendOne = async (input) => {
-  const jsonrpcpayload = await writeContract((question) => {
-    console.log({ question });
-    return input.shift();
-  });
-  await sendJSONRPC(jsonrpcpayload);
-};
-
-const main = async () => {
-  // sign and send txs one by one
-  for (let i = 0; i < inputs.length; i++) {
-    await sendOne(inputs[i]);
-  }
-};
-
-main();
 ```
+make install
+source .env.example
+make test
+```
+
+Please make pull requests against the `develop` branch.

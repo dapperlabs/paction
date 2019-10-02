@@ -1,6 +1,6 @@
 const readline = require('readline');
 
-exports.linebyline = (pubsub, ask, run) => {
+exports.linebyline = async (pubsub, ask, run) => {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -10,7 +10,10 @@ exports.linebyline = (pubsub, ask, run) => {
     pubsub.push(input);
   });
 
-  run(ask).then(() => {
+  try {
+    await run(ask);
     rl.close();
-  });
+  } catch (e) {
+    console.error('Fatal Error:', e);
+  }
 };

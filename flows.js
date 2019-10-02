@@ -1,7 +1,8 @@
 const signByKey = require('./signby/key');
 const writeActions = require('./actions/write');
 const readActions = require('./actions/read');
-const { makeTxBase } = require('./ethereum/transaction');
+const { makeTxBase, updateNonce } = require('./ethereum/transaction');
+const { privateKeyToAddress } = require('./ethereum/keypair');
 const Signature = require('./ethereum/signature');
 const inputs = require('./cli/inputs');
 const outputs = require('./cli/outputs');
@@ -9,6 +10,7 @@ const { askUntilValid } = require('./cli/ask');
 const hardware = require('./signby/hardware');
 const { fromSignature } = require('./jsonrpc/payload/from');
 const Payload = require('./jsonrpc/payload');
+const { sendPayload } = require('./jsonrpc/client');
 const {
   showAllWrites,
   showAllReads,
@@ -20,7 +22,9 @@ const {
   decodeParameters
 } = require('./cli/abi');
 const { sequential } = require('./utils/async');
+const { hex0xToHex, numberToHex } = require('./utils/hex');
 const FunctionParam = require('./types/param');
+const ethabi = require('web3-eth-abi');
 
 exports.entry = async ask => {
   const action = await askUntilValid(ask,
@@ -35,17 +39,17 @@ exports.entry = async ask => {
   );
   if (false) {
   } else if (action === 1) {
-    return exports.transferEther(ask);
+    return await exports.transferEther(ask);
   } else if (action === 2) {
-    return exports.deployContract(ask);
+    return await exports.deployContract(ask);
   } else if (action === 3) {
-    return exports.writeContract(ask);
+    return await exports.writeContract(ask);
   } else if (action === 4) {
-    return exports.readContract(ask);
+    return await exports.readContract(ask);
   } else if (action === 5) {
-    return exports.queryNonce(ask);
+    return await exports.queryNonce(ask);
   } else if (action === 6) {
-    return exports.decodeTransactionData(ask);
+    return await exports.decodeTransactionData(ask);
   }
 };
 
@@ -57,7 +61,7 @@ exports.transferEther = async ask => {
   );
   const txBase = await exports.askTxBase(ask, false);
   const rawTx = writeActions.transferEther(txBase.nonce, txBase.value, txBase.gasPrice, to);
-  return exports.chooseHowToSign(ask, rawTx);
+  return await exports.chooseHowToSign(ask, rawTx);
 };
 
 exports.askTxBase = async (ask, needAskLimit) => {
@@ -74,7 +78,7 @@ exports.askTxBase = async (ask, needAskLimit) => {
   let gasLimit = null;
   if (needAskLimit) {
     gasLimit = await askUntilValid(ask,
-      inputs.bignumber('Please type the gas limit in wei:\nExample: (10) for 10 gas')
+      inputs.bignumber('Please type the gas limit in wei:\nExample: (10000) for 10000 gas')
     );
   }
   const txBase = makeTxBase(nonce, gasPrice, gasLimit, value);
@@ -102,10 +106,8 @@ const askFunctionParams = async (ask, func) => {
 
 exports.deployContract = async ask => {
   const abiJSON = await askUntilValid(ask, inputs.abiPath(
-    'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
+    'Please type the path to the abi json file, i.e. (./tests/abis/TestContract.json):'
   ));
-  // TODO: it's vulnerable to load a json file with any path, better to add some check
-  // but for simplicity, I'm allowing it for now.
   const constructor = showConstructor(abiJSON);
   console.log('Parsed contract constructor:');
   console.log(constructor);
@@ -121,16 +123,16 @@ exports.deployContract = async ask => {
     'Please type the gas price in wei:\nExample: (10000000000) for 10 gwei'
   ));
   const gasLimit = await askUntilValid(ask, inputs.bignumber(
-    'Please type the gas limit in wei:\nExample: (10) for 10 gas'
+    'Please type the gas limit in wei:\nExample: (10000) for 10000 gas'
   ));
   const txBase = makeTxBase(nonce, gasPrice, gasLimit, value);
   const rawTx = writeActions.deployContract(abiJSON, txBase, params);
-  return exports.chooseHowToSign(ask, rawTx);
+  return await exports.chooseHowToSign(ask, rawTx);
 };
 
 exports.writeContract = async ask => {
   const abiJSON = await askUntilValid(ask, inputs.abiPath(
-    'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
+    'Please type the path to the abi json file, i.e. (./tests/abis/TestContract.json):'
   ));
   const { method, params, payable } = await exports.askContractorWriteMethodCall(ask, abiJSON);
   const contractAddress = await askUntilValid(ask, inputs.address(
@@ -147,7 +149,7 @@ exports.writeContract = async ask => {
     'Please type the gas price in wei:\nExample: (10000000000) for 10 gwei'
   ));
   const gasLimit = await askUntilValid(ask, inputs.bignumber(
-    'Please type the gas limit in wei:\nExample: (10) for 10 gas'
+    'Please type the gas limit in wei:\nExample: (10000) for 10000 gas'
   ));
   const txBase = makeTxBase(nonce, gasPrice, gasLimit, value);
   const rawTx = writeActions.writeContract(
@@ -157,18 +159,16 @@ exports.writeContract = async ask => {
     method,
     params
   );
-  return exports.chooseHowToSign(ask, rawTx);
+  return await exports.chooseHowToSign(ask, rawTx);
 };
 
 exports.askContractorWriteMethodCall = async (ask, abiJSON) => {
   const allMethods = showAllWrites(abiJSON).join('\n');
   console.log(allMethods);
   const example = firstWriteName(abiJSON);
-  const methodName = await ask(
+  const method = await askUntilValid(ask, inputs.methodName(abiJSON,
     `Please type the method name:\nExample: (${example})`
-  );
-  const method2 = findMethod(abiJSON, methodName);
-  const method = method2;
+  ));
   if (!method) {
     return Promise.reject(new Error(`unknown method name: ${method}`));
   }
@@ -184,11 +184,9 @@ exports.askContractorReadMethodCall = async (ask, abiJSON) => {
   const allMethods = showAllReads(abiJSON).join('\n');
   console.log(allMethods);
   const example = firstReadName(abiJSON);
-  const methodName = await ask(
+  const method = await askUntilValid(ask, inputs.methodName(abiJSON,
     `Please type the method name:\nExample: (${example})`
-  );
-  const method2 = findMethod(abiJSON, methodName);
-  const method = method2;
+  ));
   if (!method) {
     return Promise.reject(new Error(`unknown method name: ${method}`));
   }
@@ -212,16 +210,15 @@ exports.chooseHowToSign = async (ask, rawTx) => {
 
   if (false) {
   } else if (choice === 1) {
-    return exports.signByGethAndSend(ask, rawTx);
+    return await exports.signByGethAndSend(ask, rawTx);
   } else if (choice === 2) {
-    return exports.signByGeth(ask, rawTx);
+    return await exports.signByGeth(ask, rawTx);
   } else if (choice === 3) {
     console.log(rawTx);
-    // return exports.signByDapperService(ask, rawTx);
   } else if (choice === 4) {
-    return exports.signWithPrivateKey(ask, rawTx);
+    return await exports.signWithPrivateKey(ask, rawTx);
   } else if (choice === 5) {
-    return exports.showTransactionData(ask, rawTx);
+    return await exports.showTransactionData(ask, rawTx);
   }
 };
 
@@ -237,7 +234,7 @@ exports.signByGeth = async (ask, rawTx) => {
   const payloadToSign = Payload.signTransaction(from, rawTx);
   outputs.answer(payloadToSign);
   const signedTx = await ask('Please provide the signed tx:');
-  return exports.chooseHowToSendRawTransaction(ask, signedTx);
+  return await exports.chooseHowToSendRawTransaction(ask, signedTx);
 };
 
 exports.signWithPrivateKey = async (ask, rawTx) => {
@@ -246,7 +243,25 @@ exports.signWithPrivateKey = async (ask, rawTx) => {
   );
   // hex0x
   const signedTx = signByKey.signWithPrivateKey(rawTx, privateKey);
-  return exports.chooseHowToSendRawTransaction(ask, signedTx);
+  const finalNonce = await askNonce(ask, rawTx.nonce, privateKey);
+  console.log('nonce to use:', finalNonce);
+  const rawTxWithFinalNonce = updateNonce(rawTx, finalNonce);
+  const signedTxWithFinalNonce = signByKey.signWithPrivateKey(rawTxWithFinalNonce, privateKey);
+  return await exports.chooseHowToSendRawTransaction(ask, signedTxWithFinalNonce);
+};
+
+const askNonce = async (ask, nonce, privateKey) => {
+  const allowQueryNonce = await askUntilValid(ask,
+    inputs.bool("Allow txgun to query the nonce for you? y/n"));
+  if (allowQueryNonce) {
+    // hex0x
+    const address = privateKeyToAddress(privateKey);
+    console.log('Querying nonce for address:', address);
+    const payload = Payload.getTransactionCount(address);
+    const hex0xNonce = await sendPayload(payload);
+    return hex0xToHex(hex0xNonce);
+  }
+  return numberToHex(nonce);
 };
 
 exports.signWithHardwareWallet = async (ask, rawTx) => {
@@ -265,23 +280,40 @@ exports.signWithHardwareWallet = async (ask, rawTx) => {
 exports.chooseHowToSendRawTransaction = async (ask, signedTx) => {
   // payload
   const payload = Payload.sendRawTransaction(signedTx);
-  outputs.answer(payload);
+  await exports.chooseHowToSendPayload(ask, payload);
   return payload;
 };
 
+exports.chooseHowToSendPayload = async(ask, payload) => {
+  const willSend = await askUntilValid(ask, inputs.bool(
+    'Would you like txgun to send the payload for you? y/n'));
+  if (willSend) {
+    console.log('sending payload', payload);
+    const result = await sendPayload(payload);
+    outputs.answer({ result });
+    return { payload, result };
+  } else {
+    outputs.answer(payload);
+    return { payload };
+  }
+};
+
 exports.readContract = async (ask) => {
-  const abiPath = await ask(
-    'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
-  );
-  // TODO: it's vulnerable to load a json file with any path, better to add some check
-  // but for simplicity, I'm allowing it for now.
-  const abiJSON = require(abiPath);
+  const abiJSON = await askUntilValid(ask, inputs.abiPath(
+    'Please type the path to the abi json file, i.e. (./tests/abis/TestContract.json):'
+  ));
   const { method, params } = await exports.askContractorReadMethodCall(ask, abiJSON);
   const contractAddress = await ask(
     'contractAddress (0x57831a0c76ba6b4fdcbadd6cb48cb26e8fc15e93): '
   );
   const query = readActions.readContract(abiJSON, contractAddress, method, params);
-  return exports.chooseHowToCall(ask, query);
+  const { result, payload } = await exports.chooseHowToCall(ask, query);
+  if (result) {
+    const { outputs } = findMethod(abiJSON, method);
+    console.log({ outputs });
+    console.log('Result', ethabi.decodeParameters(outputs, result));
+  }
+  return payload;
 };
 
 exports.chooseHowToCall = async (ask, query) => {
@@ -289,8 +321,7 @@ exports.chooseHowToCall = async (ask, query) => {
   blockNumber = blockNumber === '' ? null : parseInt(blockNumber, 10);
   blockNumber = isNaN(blockNumber) ? null : blockNumber;
   const payload = Payload.callWithQuery(query, blockNumber);
-  outputs.answer(payload);
-  return payload;
+  return await exports.chooseHowToSendPayload(ask, payload);
 };
 
 exports.queryNonce = async (ask) => {
@@ -305,12 +336,9 @@ exports.queryNonce = async (ask) => {
 };
 
 exports.decodeTransactionData = async (ask) => {
-  const abiPath = await ask(
-    'Please type the path to the abi json file, i.e. (./abis/Offers.json):'
-  );
-  // TODO: it's vulnerable to load a json file with any path, better to add some check
-  // but for simplicity, I'm allowing it for now.
-  const abiJSON = require(abiPath);
+  const abiJSON = await askUntilValid(ask, inputs.abiPath(
+    'Please type the path to the abi json file, i.e. (./tests/abis/TestContract.json):'
+  ));
   // hex0x
   const txData = await askUntilValid(ask, inputs.hex0x(
     'Please type the transaction data i.e. (0xfb3790c50000000000000000000000000000000000000000000000000000000000001783'));
