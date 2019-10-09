@@ -12,8 +12,9 @@ exports.linebyline = async (pubsub, ask, run) => {
 
   try {
     await run(ask);
-    rl.close();
   } catch (e) {
     console.error('Fatal Error:', e);
+  } finally {
+    rl.close();
   }
 };

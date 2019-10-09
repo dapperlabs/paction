@@ -78,7 +78,7 @@ exports.askTxBase = async (ask, needAskLimit) => {
   let gasLimit = null;
   if (needAskLimit) {
     gasLimit = await askUntilValid(ask,
-      inputs.bignumber('Please type the gas limit in wei:\nExample: (10000) for 10 gas')
+      inputs.bignumber('Please type the gas limit in wei:\nExample: (10000) for 10000 gas')
     );
   }
   const txBase = makeTxBase(nonce, gasPrice, gasLimit, value);
