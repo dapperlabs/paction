@@ -290,7 +290,7 @@ exports.chooseHowToSendPayload = async(ask, payload) => {
   if (willSend) {
     console.log('sending payload', payload);
     const result = await sendPayload(payload);
-    outputs.answer({ result });
+    outputs.answer(JSON.stringify({ result }));
     return { payload, result };
   } else {
     outputs.answer(payload);
