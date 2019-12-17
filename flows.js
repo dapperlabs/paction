@@ -252,7 +252,7 @@ exports.signWithPrivateKey = async (ask, rawTx) => {
 
 const askNonce = async (ask, nonce, privateKey) => {
   const allowQueryNonce = await askUntilValid(ask,
-    inputs.bool("Allow txgun to query the nonce for you? y/n"));
+    inputs.bool("Allow paction to query the nonce for you? y/n"));
   if (allowQueryNonce) {
     // hex0x
     const address = privateKeyToAddress(privateKey);
@@ -286,7 +286,7 @@ exports.chooseHowToSendRawTransaction = async (ask, signedTx) => {
 
 exports.chooseHowToSendPayload = async(ask, payload) => {
   const willSend = await askUntilValid(ask, inputs.bool(
-    'Would you like txgun to send the payload for you? y/n'));
+    'Would you like paction to send the payload for you? y/n'));
   if (willSend) {
     console.log('sending payload', payload);
     const result = await sendPayload(payload);

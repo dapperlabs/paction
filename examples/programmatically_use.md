@@ -1,9 +1,9 @@
-## How to use txgun programmatically to send transactions in batch?
+## How to use paction programmatically to send transactions in batch?
 
-If you want to programmatically making multiple txs to write to a contract. You can write a script using txgun.
+If you want to programmatically making multiple txs to write to a contract. You can write a script using paction.
 
 ```js
-const { writeContract } = require('txgun/flows');
+const { writeContract } = require('paction/flows');
 const YOUR_PRIVATE_KEY = '0xXXXXXXXXXXXXXXX_YOUR_PRIVATE_KEY_HERE';
 const inputs = [
   [

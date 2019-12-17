@@ -1,12 +1,12 @@
 {
-  "name": "txgun",
+  "name": "paction",
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "https://github.com/dapperlabs/txgun",
+  "repository": "https://github.com/dapperlabs/paction",
   "author": "Leo Zhang (zhangchiqing) <zhangchiqing@gmail.com>",
   "license": "MIT",
   "bin": {
-    "txgun": "./bin/txgun"
+    "paction": "./bin/paction"
   },
   "scripts": {
     "test": "mocha tests/*.test.js",

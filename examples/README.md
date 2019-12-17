@@ -12,7 +12,7 @@
 <img width="1278" alt="n5" src="https://user-images.githubusercontent.com/811374/50714964-c835ff00-102f-11e9-9c1a-d74c02191ef3.png">
 
 ## Read inputs from a file to transfer ether
-txgun can read inputs from standard inputs, you can save your types by saving your inputs in a file and pipe it to txgun to execute.
+paction can read inputs from standard inputs, you can save your types by saving your inputs in a file and pipe it to paction to execute.
 You can also copy paste the multi-line inputs.
 <img width="835" alt="transfer ether" src="https://user-images.githubusercontent.com/811374/50715069-409cc000-1030-11e9-9b73-ee4783e52353.png">
 
