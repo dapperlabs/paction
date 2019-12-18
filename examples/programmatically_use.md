@@ -7,32 +7,30 @@ const { writeContract } = require('paction/flows');
 const YOUR_PRIVATE_KEY = '0xXXXXXXXXXXXXXXX_YOUR_PRIVATE_KEY_HERE';
 const inputs = [
   [
-    '3',
     './tests/abis/TestContract.json',
     'createToken',
-    '30'
+    '30',
     '0xc34518fd04ff34a566430ebe9ca82161fc8b767d',
     '0x02153c5dd85440f4e0c084bc6f178ed2f3fdd6ca2c4c5ac4a98ab7f68f140479',
     '0x57831a0c76ba6b4fdcbadd6cb48cb26e8fc15e93',
     '0',
     '10000000000',
-    '10000',0000000
+    '10000',
     '4',
     YOUR_PRIVATE_KEY,
     'y',
     'y',
   ],
   [
-    '3',
     './tests/abis/TestContract.json',
     'createToken',
-    '31'
+    '31',
     '0xc34518fd04ff34a566430ebe9ca82161fc8b767d',
     '0x02153c5dd85440f4e0c084bc6f178ed2f3fdd6ca2c4c5ac4a98ab7f68f140479',
     '0x57831a0c76ba6b4fdcbadd6cb48cb26e8fc15e93',
     '0',
     '10000000000',
-    '10000',0000000
+    '10000',
     '5',
     YOUR_PRIVATE_KEY,
     'y',
