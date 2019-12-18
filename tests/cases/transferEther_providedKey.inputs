@@ -1,9 +1,18 @@
+# Transfer Ether:
 1
+# receiption address:
 0xFF0E3299e55EFD859176D582FC805481e8344915
+# eth value to be sent in wei:
 1000000000
+# nonce
 49
+# gas price - 10 gwei
 10000000000
+# use private key to sign the transaction
 4
+# private key
 0x1973DEC646750D76C0A3A6E6FD7398D47F850A7161E455E55DFA28439A937E6B
+# don't auto query nonce
 n
+# print the payload
 n

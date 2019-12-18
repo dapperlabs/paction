@@ -238,9 +238,9 @@ exports.signByGeth = async (ask, rawTx) => {
 };
 
 exports.signWithPrivateKey = async (ask, rawTx) => {
-  const privateKey = await ask(
+  const privateKey = await askUntilValid(ask, inputs.hex0x(
     'Please type your private key\nExample: (0x197...)'
-  );
+  ));
   // hex0x
   const signedTx = signByKey.signWithPrivateKey(rawTx, privateKey);
   const finalNonce = await askNonce(ask, rawTx.nonce, privateKey);
